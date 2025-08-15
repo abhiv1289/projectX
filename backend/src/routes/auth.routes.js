@@ -1,7 +1,21 @@
 import express, { Router } from "express";
-import { register } from "../controllers/auth.controller.js";
+import { registerUser } from "../controllers/auth.controller.js";
+import { upload } from "../middlewares/multer.middleware.js";
+
 const router = Router();
 
-router.post("/register", register);
+router.route("/register").post(
+  upload.fields([
+    {
+      name: "avatar",
+      maxCount: 1,
+    },
+    {
+      name: "coverImage",
+      maxCount: 1,
+    },
+  ]),
+  registerUser
+);
 
 export default router;

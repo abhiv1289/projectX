@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
+//importing routes
 import authRoutes from "./routes/auth.routes.js";
 
 dotenv.config();
@@ -21,9 +22,19 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use("/api/auth", authRoutes);
 
-app.listen(port || 8000, () => {
-  console.log("Server is running on port", port);
-  connectDB();
-});
+//handling routes
+app.use("/api/v1/auth", authRoutes);
+
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(port || 8000, () => {
+      console.log("Server is running on port:", port);
+    });
+  } catch (error) {
+    console.error("Error in starting the server!");
+  }
+};
+startServer();
