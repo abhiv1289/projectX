@@ -1,5 +1,5 @@
-import User from "../models/user.model";
-import { ApiError } from "../utils/ApiError";
+import User from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 
 export const verifyJWT = async (req, res, next) => {
@@ -19,7 +19,7 @@ export const verifyJWT = async (req, res, next) => {
 
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    if (!decoded) {
+    if (!decodedToken) {
       throw new ApiError(401, "Invalid Access Token.");
     }
 
