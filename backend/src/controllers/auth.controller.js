@@ -45,14 +45,16 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "User with username or email already exists!");
   }
 
-  const avatarLocalFilePath = req.files?.avatar[0]?.path;
-  const coverImageLocalFilePath = req.files?.coverImage[0]?.path;
+  const avatarLocalFilePath = req.files?.avatar?.[0]?.path;
+
+  const coverImageLocalFilePath = req.files?.coverImage?.[0]?.path;
 
   if (!avatarLocalFilePath) {
     throw new ApiError(400, "avatar is required");
   }
 
   const avatar = await uploadOnCloudinary(avatarLocalFilePath);
+
   const coverImage = await uploadOnCloudinary(coverImageLocalFilePath);
 
   if (!avatar) {
@@ -84,7 +86,7 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
 
-  if (!username || !email) {
+  if (!username && !email) {
     throw new ApiError(400, "username or email is required!");
   }
 
@@ -247,7 +249,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullname, email } = req.body;
 
-  if (!fullname || !email) {
+  if (!fullname && !email) {
     throw new ApiError(400, "All details are required!");
   }
 
