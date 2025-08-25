@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 
 //importing routes
 import authRoutes from "./routes/auth.routes.js";
+import videoRoutes from "./routes/video.routes.js";
 
 dotenv.config();
 const app = express();
@@ -25,6 +26,8 @@ app.use(cookieParser());
 
 //handling routes
 app.use("/api/v1/auth", authRoutes);
+
+app.use("/api/v1/video", videoRoutes);
 
 const startServer = async () => {
   try {
