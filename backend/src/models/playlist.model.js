@@ -6,6 +6,7 @@ const playlistSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique: true,
     },
     description: {
       type: String,
@@ -28,4 +29,5 @@ const playlistSchema = new mongoose.Schema(
   }
 );
 
-export const Playlist = mongoose.model("Playlist", playlistSchema);
+const Playlist = mongoose.model("Playlist", playlistSchema);
+export default Playlist;

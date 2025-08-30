@@ -7,6 +7,12 @@ import cookieParser from "cookie-parser";
 //importing routes
 import authRoutes from "./routes/auth.routes.js";
 import videoRoutes from "./routes/video.routes.js";
+import subscriptionRoutes from "./routes/subscription.route.js";
+import postRoutes from "./routes/post.routes.js";
+import commentRoutes from "./routes/comment.routes.js";
+import likeRoutes from "./routes/like.routes.js";
+import playlistRoutes from "./routes/playlist.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 
 dotenv.config();
 const app = express();
@@ -28,6 +34,18 @@ app.use(cookieParser());
 app.use("/api/v1/auth", authRoutes);
 
 app.use("/api/v1/video", videoRoutes);
+
+app.use("/api/v1/subscription", subscriptionRoutes);
+
+app.use("/api/v1/comment", commentRoutes);
+
+app.use("/api/v1/post", postRoutes);
+
+app.use("/api/v1/like", likeRoutes);
+
+app.use("/api/v1/playlist", playlistRoutes);
+
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 const startServer = async () => {
   try {
