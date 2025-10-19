@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
+  addComment,
   getVideoComments,
   updateComment,
   deleteComment,
@@ -9,11 +10,15 @@ import { toggleCommentLike } from "../controllers/like.controller.js";
 
 const router = Router();
 
+router.route("/:videoId").get(getVideoComments);
+
 router.use(verifyJWT);
 
-router.route("/:commentId").patch(updateComment);
+router.route("/add/:videoId").post(addComment);
 
-router.route("/:commentId").delete(deleteComment);
+router.route("/update/:commentId").patch(updateComment);
+
+router.route("/delete/:commentId").delete(deleteComment);
 
 router.route("/toggle-like/:commentId").post(toggleCommentLike);
 

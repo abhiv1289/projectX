@@ -47,6 +47,18 @@ app.use("/api/v1/playlist", playlistRoutes);
 
 app.use("/api/v1/dashboard", dashboardRoutes);
 
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Something went wrong";
+
+  res.status(statusCode).json({
+    status: "error",
+    message,
+  });
+});
+
 const startServer = async () => {
   try {
     await connectDB();

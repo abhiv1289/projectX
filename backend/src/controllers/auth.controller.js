@@ -84,14 +84,14 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body;
+  const { identifier, password } = req.body;
 
-  if (!username && !email) {
+  if (!identifier) {
     throw new ApiError(400, "username or email is required!");
   }
 
   const user = await User.findOne({
-    $or: [{ username }, { email }],
+    $or: [{ username: identifier }, { email: identifier }],
   });
 
   if (!user) {
@@ -247,9 +247,9 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { fullname, email } = req.body;
+  const { fullname } = req.body;
 
-  if (!fullname && !email) {
+  if (!fullname) {
     throw new ApiError(400, "All details are required!");
   }
 
@@ -258,7 +258,6 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     {
       $set: {
         fullname: fullname,
-        email: email,
       },
     },
     {
@@ -310,7 +309,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
   const user = await User.findByIdAndUpdate(req.user?._id, {
     $set: {
-      CoverImage: CoverImage.url,
+      coverImage: CoverImage.url,
     },
   }).select("-password");
 

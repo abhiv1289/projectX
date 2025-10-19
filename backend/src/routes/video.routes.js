@@ -16,9 +16,9 @@ import {
 import { toggleVideoLike } from "../controllers/like.controller.js";
 
 const router = Router();
-router.use(verifyJWT);
 
 router.route("/publish-video").post(
+  verifyJWT,
   upload.fields([
     {
       name: "videoFile",
@@ -32,22 +32,22 @@ router.route("/publish-video").post(
   publishAVideo
 );
 
-router.route("/delete-video/:videoId").delete(deleteVideo);
+router.route("/delete-video/:videoId").delete(verifyJWT, deleteVideo);
 
 router
   .route("/update-video/:videoId")
-  .patch(upload.single("thumbnail"), updateVideo);
+  .patch(verifyJWT, upload.single("thumbnail"), updateVideo);
 
-router.route("/publish-status/:videoId").patch(togglePublishStatus);
+router.route("/publish-status/:videoId").patch(verifyJWT, togglePublishStatus);
 
 router.route("/c/:videoId").get(getVideoById);
 
 router.route("/search").get(getAllVideos);
 
-router.route("/comment/:videoId").post(addComment);
+router.route("/comment/:videoId").post(verifyJWT, addComment);
 
 router.route("/:videoId").get(getVideoComments);
 
-router.route("/toggle-like/:videoId").post(toggleVideoLike);
+router.route("/toggle-like/:videoId").post(verifyJWT, toggleVideoLike);
 
 export default router;

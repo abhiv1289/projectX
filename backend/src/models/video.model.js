@@ -7,6 +7,11 @@ const videoSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    channelName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     thumbnail: {
       type: String,
       required: true,

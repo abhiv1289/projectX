@@ -5,12 +5,13 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import Post from "../models/post.model.js";
+import Comment from "../models/comment.model.js";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
 
   if (!videoId) {
-    throw new ApiError(400, "provide a valid videoId!");
+    throw new ApiError(400, "Provide a valid videoId!");
   }
 
   const video = await Video.findById(videoId);
@@ -18,36 +19,46 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Video not found!");
   }
 
-  const AlreadyLiked = await Like.findOne({
+  const existingLike = await Like.findOne({
     video: videoId,
     likedBy: req.user?._id,
   });
 
-  let liked = null;
-  let message = "";
+  let isLiked;
+  let message;
 
-  if (!AlreadyLiked) {
-    liked = await Like.create({
+  if (!existingLike) {
+    // create like
+    await Like.create({
       video: videoId,
       likedBy: req.user?._id,
     });
-    message = "liked";
+    isLiked = true;
+    message = "Liked";
   } else {
-    liked = await Like.deleteOne({
+    // remove like
+    await Like.deleteOne({
       video: videoId,
       likedBy: req.user?._id,
     });
+    isLiked = false;
     message = "Unliked";
   }
 
-  return res.status(200).json(new ApiResponse(200, liked, message));
+  // compute current like count (source of truth)
+  const likeCount = await Like.countDocuments({ video: videoId });
+
+  // Return explicit boolean and count
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { isLiked, likeCount }, message));
 });
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
 
   if (!commentId) {
-    throw new ApiError(400, "provide a valid commentId!");
+    throw new ApiError(400, "Provide a valid commentId!");
   }
 
   const comment = await Comment.findById(commentId);
@@ -55,66 +66,71 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Comment not found!");
   }
 
-  const AlreadyLiked = await Like.findOne({
+  const alreadyLiked = await Like.findOne({
     comment: commentId,
     likedBy: req.user?._id,
   });
 
-  let liked = null;
-  let message = "";
+  let isLiked = false;
 
-  if (!AlreadyLiked) {
-    liked = await Like.create({
+  if (!alreadyLiked) {
+    await Like.create({
       comment: commentId,
       likedBy: req.user?._id,
     });
-    message = "liked";
+    isLiked = true;
   } else {
-    liked = await Like.deleteOne({
+    await Like.deleteOne({
       comment: commentId,
       likedBy: req.user?._id,
     });
-    message = "Unliked";
+    isLiked = false;
   }
 
-  return res.status(200).json(new ApiResponse(200, liked, message));
+  // get current like count
+  const likeCount = await Like.countDocuments({ comment: commentId });
+
+  const message = isLiked ? "Liked" : "Unliked";
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { isLiked, likeCount }, message));
 });
 
 const togglePostLike = asyncHandler(async (req, res) => {
   const { postId } = req.params;
 
-  if (!postId) {
-    throw new ApiError(400, "provide a valid postId!");
-  }
+  if (!postId) throw new ApiError(400, "Provide a valid postId!");
 
   const post = await Post.findById(postId);
-  if (!post) {
-    throw new ApiError(404, "Post not found!");
-  }
+  if (!post) throw new ApiError(404, "Post not found!");
 
-  const AlreadyLiked = await Like.findOne({
+  const existingLike = await Like.findOne({
     post: postId,
     likedBy: req.user?._id,
   });
 
-  let liked = null;
-  let message = "";
-
-  if (!AlreadyLiked) {
-    liked = await Like.create({
-      post: postId,
-      likedBy: req.user?._id,
-    });
-    message = "liked";
+  let isLiked;
+  if (!existingLike) {
+    await Like.create({ post: postId, likedBy: req.user?._id });
+    isLiked = true;
   } else {
-    liked = await Like.deleteOne({
-      post: postId,
-      likedBy: req.user?._id,
-    });
-    message = "Unliked";
+    await Like.deleteOne({ _id: existingLike._id });
+    isLiked = false;
   }
 
-  return res.status(200).json(new ApiResponse(200, liked, message));
+  // ✅ count total likes after toggle
+  const likeCount = await Like.countDocuments({ post: postId });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { isLiked, likeCount },
+        isLiked ? "Liked" : "Unliked"
+      )
+    );
 });
 
 const getLikedVideos = asyncHandler(async (req, res) => {

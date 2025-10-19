@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
+  getAllPosts,
   createPost,
   deletePost,
   getUserPosts,
@@ -15,6 +16,9 @@ import { togglePostLike } from "../controllers/like.controller.js";
 
 const router = Router();
 
+router.route("/search").get(getAllPosts);
+router.route("/u/:userId").get(getUserPosts);
+
 router.use(verifyJWT);
 
 router.route("/create-post").post(
@@ -26,8 +30,6 @@ router.route("/create-post").post(
   ]),
   createPost
 );
-
-router.route("/u/:userId").get(getUserPosts);
 
 router.route("/update-post/:postId").patch(updatePost);
 

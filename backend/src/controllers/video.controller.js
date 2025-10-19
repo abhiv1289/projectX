@@ -37,6 +37,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     description,
     duration: Uploadedvideo.duration,
     owner: req.user?._id,
+    channelName: req.user?.fullname,
   });
 
   return res

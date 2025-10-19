@@ -35,13 +35,15 @@ const createPost = asyncHandler(async (req, res) => {
 const getUserPosts = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  if (!userId) {
-    throw new ApiError(400, "provide a valid userId!");
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(400, "Provide a valid userId!");
   }
 
   const posts = await Post.find({
     owner: userId,
-  }).sort({ createdAt: -1 });
+  })
+    .sort({ createdAt: -1 })
+    .populate("owner", "username avatar fullname");
 
   return res
     .status(200)
@@ -95,4 +97,63 @@ const deletePost = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, deletedPost, "post deleted successfully!"));
 });
 
-export { createPost, getUserPosts, updatePost, deletePost };
+const getAllPosts = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+
+  const pageNumber = Number(page) || 1;
+  const limitNumber = Number(limit) || 10;
+  const skip = (pageNumber - 1) * limitNumber;
+
+  // Validate sortType
+  if (sortType && !["asc", "desc"].includes(sortType.toLowerCase())) {
+    throw new ApiError(400, "sortType must be either 'asc' or 'desc'");
+  }
+
+  // Allowed fields to sort by
+  const allowedSortFields = ["createdAt", "likes", "comments"];
+  if (sortBy && !allowedSortFields.includes(sortBy)) {
+    throw new ApiError(400, "Invalid sortBy field");
+  }
+
+  // Validate userId
+  if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(400, "Invalid userId");
+  }
+
+  // Build filter
+  let filter = {};
+  if (query) {
+    filter.$or = [{ content: { $regex: query, $options: "i" } }];
+  }
+  if (userId) {
+    filter.owner = userId;
+  }
+
+  // Build sort object
+  let sort = { createdAt: -1 }; // default: newest first
+  if (sortBy) {
+    sort = { [sortBy]: sortType === "asc" ? 1 : -1 };
+  }
+
+  // Fetch posts
+  const posts = await Post.find(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(limitNumber)
+    .populate("owner", "username avatar");
+
+  const totalPosts = await Post.countDocuments(filter);
+  const totalPages = Math.ceil(totalPosts / limitNumber);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { posts, totalPosts, totalPages, page: pageNumber },
+        "Posts fetched successfully!"
+      )
+    );
+});
+
+export { createPost, getUserPosts, updatePost, deletePost, getAllPosts };
