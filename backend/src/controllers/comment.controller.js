@@ -3,9 +3,11 @@ import Comment from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import Like from "../models/like.model.js";
 
 const getVideoComments = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const { userId } = req.query;
   let { page = 1, limit = 10 } = req.query;
 
   if (!videoId) {
@@ -20,11 +22,23 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
   const skip = (page - 1) * limit;
 
-  const comments = await Comment.find({ video: videoId })
+  let comments = await Comment.find({ video: videoId })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate("owner", "username avatar");
+    .populate("owner", "username avatar")
+    .lean();
+
+  comments = await Promise.all(
+    comments.map(async (comment) => {
+      const likeCount = await Like.countDocuments({ comment: comment._id });
+      const isLiked = userId
+        ? await Like.exists({ comment: comment._id, likedBy: userId })
+        : false;
+
+      return { ...comment, likeCount, isLiked: Boolean(isLiked) };
+    })
+  );
 
   return res
     .status(200)

@@ -4,6 +4,8 @@ import User from "../models/user.model.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { OTP } from "../models/otp.model.js";
+import { generateOTP, hashOTP, sendOTPEmail } from "../utils/otp.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
@@ -509,6 +511,63 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     );
 });
 
+const addToWatchHistory = asyncHandler(async (req, res) => {
+  const userId = req.user._id; // logged-in user
+  const videoId = req.body.videoId; // video being watched
+
+  if (!videoId) {
+    throw new ApiError(400, "Video ID is required");
+  }
+
+  // Use $addToSet to avoid duplicates
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $pull: { watchHistory: videoId } }, // remove if already exists
+    { new: true }
+  );
+
+  // Then push to the start (most recent first)
+  await User.findByIdAndUpdate(userId, {
+    $push: { watchHistory: { $each: [videoId], $position: 0, $slice: 50 } },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Video added to watch history"));
+});
+
+// Send OTP
+const sendOtp = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email is required" });
+
+  const otp = generateOTP();
+  const otpHash = hashOTP(otp);
+
+  await OTP.create({ email, otpHash });
+  await sendOTPEmail(email, otp);
+
+  res.json({ message: "OTP sent successfully" });
+};
+
+// Verify OTP
+const verifyOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp)
+    return res.status(400).json({ message: "Email and OTP required" });
+
+  const otpRecord = await OTP.findOne({ email });
+  if (!otpRecord)
+    return res.status(400).json({ message: "OTP expired or invalid" });
+
+  if (hashOTP(otp) !== otpRecord.otpHash)
+    return res.status(400).json({ message: "Invalid OTP" });
+
+  await OTP.deleteOne({ _id: otpRecord._id });
+
+  res.json({ message: "OTP verified successfully" });
+};
+
 export {
   registerUser,
   loginUser,
@@ -522,4 +581,7 @@ export {
   getUserChannelProfile,
   getWatchHistory,
   auth0LoginUser,
+  sendOtp,
+  verifyOtp,
+  addToWatchHistory,
 };

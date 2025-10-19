@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import Like from "../models/like.model.js";
 
 const createPost = asyncHandler(async (req, res) => {
   const { content } = req.body;
@@ -136,11 +137,26 @@ const getAllPosts = asyncHandler(async (req, res) => {
   }
 
   // Fetch posts
-  const posts = await Post.find(filter)
+  let posts = await Post.find(filter)
     .sort(sort)
     .skip(skip)
     .limit(limitNumber)
-    .populate("owner", "username avatar");
+    .populate("owner", "username avatar")
+    .lean();
+
+  posts = await Promise.all(
+    posts.map(async (post) => {
+      const likeCount = await Like.countDocuments({ post: post._id });
+      const isLiked = userId
+        ? await Like.exists({
+            post: post._id,
+            likedBy: userId,
+          })
+        : false;
+
+      return { ...post, likeCount, isLiked: Boolean(isLiked) };
+    })
+  );
 
   const totalPosts = await Post.countDocuments(filter);
   const totalPages = Math.ceil(totalPosts / limitNumber);

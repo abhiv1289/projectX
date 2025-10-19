@@ -12,9 +12,9 @@ const menuItems = [
   { icon: FaHome, label: "Home" },
   { icon: IoIosTrendingUp, label: "Trending" },
   { icon: IoLibraryOutline, label: "Posts", to: "/posts" },
-  { icon: FaHistory, label: "History" },
+  { icon: FaHistory, label: "History", to: "/history" },
   { icon: CiClock1, label: "Watch Later" },
-  { icon: FaRegThumbsUp, label: "Liked Videos" },
+  { icon: FaRegThumbsUp, label: "Liked Stuffs", to: "/liked" },
   { icon: AiFillPlaySquare, label: "Playlists", to: "/playlists" },
 ];
 

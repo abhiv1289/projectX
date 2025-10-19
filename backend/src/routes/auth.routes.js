@@ -12,6 +12,9 @@ import {
   getUserChannelProfile,
   getWatchHistory,
   auth0LoginUser,
+  sendOtp,
+  verifyOtp,
+  addToWatchHistory,
 } from "../controllers/auth.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -56,7 +59,11 @@ router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
 
 router.route("/history").get(verifyJWT, getWatchHistory);
 
+router.route("/add-to-history").post(verifyJWT, addToWatchHistory);
+
 // routes/auth.routes.js
 router.post("/auth0-login", auth0LoginUser);
 
+router.post("/send-otp", sendOtp);
+router.post("/verify-otp", verifyOtp);
 export default router;

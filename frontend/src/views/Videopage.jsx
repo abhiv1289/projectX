@@ -72,7 +72,16 @@ const Videopage = () => {
       try {
         setLoading(true);
         const response = await axiosInstance.get(`/v1/video/c/${videoId}`);
+        const likesCount = await axiosInstance.get(
+          `/v1/like/get-video-like/${videoId}`
+        );
+        const isLikedRes = await axiosInstance.get(
+          `/v1/like/video/${videoId}?userId=${user?._id}`
+        );
         const videoData = response.data.data;
+        setIsLiked(isLikedRes.data.isLiked);
+
+        setLikeCount(likesCount.data.likeCount || 0);
 
         if (!videoData.isPublished && videoData.owner?._id !== user?._id) {
           setError("This video is not published yet.");

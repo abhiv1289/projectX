@@ -125,10 +125,24 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
     }
   };
 
+  const handleClick = async () => {
+    try {
+      await axiosInstance.post(
+        "/v1/auth/add-to-history",
+        { videoId: _id },
+        { withCredentials: true }
+      );
+
+      navigate(`/video/${_id}`);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="group overflow-hidden bg-gray-900 border border-gray-800 rounded-xl transition-all hover:bg-gray-800 relative">
       {/* Thumbnail */}
-      <div className="cursor-pointer" onClick={() => navigate(`/video/${_id}`)}>
+      <div className="cursor-pointer" onClick={handleClick}>
         <div className="relative aspect-video overflow-hidden">
           <img
             src={thumbnail}

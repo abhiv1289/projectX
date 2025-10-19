@@ -20,7 +20,9 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
     try {
       setLoading(true);
       let url =
-        itemType === "video" ? `/v1/comment/${itemId}` : `/v1/post/${itemId}`;
+        itemType === "video"
+          ? `/v1/comment/${itemId}?userId=${user?._id}`
+          : `/v1/post/${itemId}`;
 
       const res = await axiosInstance.get(url, {
         params: { page: pageNum, limit: 10 },

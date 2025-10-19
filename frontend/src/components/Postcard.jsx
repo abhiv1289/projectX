@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import CommentSection from "./CommentSection";
 import { axiosInstance } from "../utility/axios";
@@ -15,6 +15,23 @@ const Postcard = ({ post, currentUser, refreshPosts }) => {
   // ✅ Like feature state
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      try {
+        const likeCountRes = await axiosInstance.get(
+          `/v1/like/get-post-like/${post._id}`
+        );
+        const isLikedRes = await axiosInstance.get(`/v1/like/post/${post._id}`);
+        console.log("liked:", isLikedRes);
+        setIsLiked(isLikedRes.data.isLiked);
+        setLikeCount(likeCountRes.data.likeCount || 0);
+      } catch (error) {
+        console.log("Er", error);
+      }
+    };
+    fetchLikeStatus();
+  }, []);
 
   // ✅ Toggle like
   const handleToggleLike = async () => {

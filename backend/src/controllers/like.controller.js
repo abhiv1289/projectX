@@ -168,6 +168,114 @@ const getLikedComments = asyncHandler(async (req, res) => {
     );
 });
 
+const getVideoLikesCount = asyncHandler(async (req, res) => {
+  try {
+    const { videoId } = req.params;
+
+    if (!videoId) {
+      return res.status(400).json({ message: "Video ID is required" });
+    }
+
+    // Count likes where the video field matches the given ID
+    const likeCount = await Like.countDocuments({ video: videoId });
+
+    return res.status(200).json({
+      success: true,
+      videoId,
+      likeCount,
+    });
+  } catch (error) {
+    console.error("Error fetching likes count:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while getting like count",
+    });
+  }
+});
+
+const getPostLikesCount = asyncHandler(async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    if (!postId) {
+      return res.status(400).json({ message: "Post ID is required" });
+    }
+
+    // Count likes where the video field matches the given ID
+    const likeCount = await Like.countDocuments({ post: postId });
+
+    return res.status(200).json({
+      success: true,
+      postId,
+      likeCount,
+    });
+  } catch (error) {
+    console.error("Error fetching likes count:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while getting like count",
+    });
+  }
+});
+
+const isVideoLiked = asyncHandler(async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const userId = req.user?._id;
+
+    if (!videoId || !userId) {
+      return res
+        .status(400)
+        .json({ message: "Video ID and User ID are required" });
+    }
+
+    // Check if user has liked this video
+    const isLiked = await Like.exists({ video: videoId, likedBy: userId });
+
+    return res.status(200).json({
+      success: true,
+      videoId,
+      userId,
+      isLiked: !!isLiked, // returns true/false
+    });
+  } catch (error) {
+    console.error("Error checking like status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while checking like status",
+    });
+  }
+});
+
+const isPostLiked = asyncHandler(async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user?._id;
+
+    if (!postId || !userId) {
+      return res
+        .status(400)
+        .json({ message: "Video ID and User ID are required" });
+    }
+
+    // Check if user has liked this video
+    const isLiked = await Like.exists({ post: postId, likedBy: userId });
+
+    return res.status(200).json({
+      success: true,
+      postId,
+      userId,
+      isLiked: !!isLiked, // returns true/false
+    });
+  } catch (error) {
+    console.error("Error checking like status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while checking like status",
+    });
+  }
+});
+
 export {
   toggleVideoLike,
   toggleCommentLike,
@@ -175,4 +283,8 @@ export {
   getLikedVideos,
   getLikedComments,
   getLikedPosts,
+  getVideoLikesCount,
+  isVideoLiked,
+  getPostLikesCount,
+  isPostLiked,
 };

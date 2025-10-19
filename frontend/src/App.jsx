@@ -14,6 +14,8 @@ import "slick-carousel/slick/slick-theme.css";
 import PlaylistsPage from "./views/Playlistpage";
 import PlaylistDetails from "./pages/PlaylistDetails";
 import AuthCallback from "./components/AuthCallback";
+import History from "./pages/History";
+import Likedpage from "./pages/Likedpage";
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
           <Route path="posts" element={<Postpage />} />
           <Route path="/playlists" element={<PlaylistsPage />} />
           <Route path="/playlists/:playlistId" element={<PlaylistDetails />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/liked" element={<Likedpage />} />
         </Route>
         <Route path="/auth-callback" element={<AuthCallback />} />
       </Routes>

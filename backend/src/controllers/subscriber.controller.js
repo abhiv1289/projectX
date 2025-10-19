@@ -8,8 +8,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
 
-  console.log("in toggle:", channelId);
-
   if (!channelId) {
     throw new ApiError(400, "Provide a valid channelId");
   }
