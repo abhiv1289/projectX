@@ -29,14 +29,14 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { fullname, username, email, password } = req.body;
+  const { fullname, username, email, password, avatar } = req.body;
 
-  if (
-    [fullname, username, email, password].some((field) => field?.trim() === "")
-  ) {
-    throw new ApiError(400, "All fields are required");
+  // ✅ Validate required fields (password might be optional for OAuth later)
+  if ([fullname, username, email].some((field) => field?.trim() === "")) {
+    throw new ApiError(400, "Fullname, username, and email are required");
   }
 
+  // ✅ Check if user already exists
   const existingUser = await User.findOne({
     $or: [{ username }, { email }],
   });
@@ -45,29 +45,39 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "User with username or email already exists!");
   }
 
-  const avatarLocalFilePath = req.files?.avatar?.[0]?.path;
+  // ✅ Handle avatar and cover image (file or URL)
+  let avatarUrl = "";
+  let coverImageUrl = "";
 
+  const avatarLocalFilePath = req.files?.avatar?.[0]?.path;
   const coverImageLocalFilePath = req.files?.coverImage?.[0]?.path;
 
-  if (!avatarLocalFilePath) {
-    throw new ApiError(400, "avatar is required");
+  // Handle avatar
+  if (avatarLocalFilePath) {
+    const uploadedAvatar = await uploadOnCloudinary(avatarLocalFilePath);
+    avatarUrl = uploadedAvatar?.url;
+  } else if (avatar && avatar.startsWith("http")) {
+    avatarUrl = avatar;
+  } else {
+    throw new ApiError(400, "Avatar is required");
   }
 
-  const avatar = await uploadOnCloudinary(avatarLocalFilePath);
-
-  const coverImage = await uploadOnCloudinary(coverImageLocalFilePath);
-
-  if (!avatar) {
-    throw new ApiError(400, "avatar is required");
+  // Handle cover image (optional)
+  if (coverImageLocalFilePath) {
+    const uploadedCover = await uploadOnCloudinary(coverImageLocalFilePath);
+    coverImageUrl = uploadedCover?.url || "";
+  } else if (req.body.coverImage && req.body.coverImage.startsWith("http")) {
+    coverImageUrl = req.body.coverImage;
   }
 
+  // ✅ Create user
   const user = await User.create({
     fullname,
     username: username.toLowerCase(),
     email,
-    password,
-    avatar: avatar.url,
-    coverImage: coverImage?.url || "",
+    password: password || "OAuthUser@123", // fallback if OAuth login (so schema doesn’t fail)
+    avatar: avatarUrl,
+    coverImage: coverImageUrl,
   });
 
   const createdUser = await User.findById(user._id).select(
@@ -81,6 +91,61 @@ const registerUser = asyncHandler(async (req, res) => {
   return res
     .status(201)
     .json(new ApiResponse(200, createdUser, "User registered successfully!"));
+});
+
+// controller/auth.controller.js
+
+const auth0LoginUser = asyncHandler(async (req, res) => {
+  const { user } = req.body;
+
+  if (!user || !user.email) {
+    throw new ApiError(400, "Invalid Auth0 user data");
+  }
+
+  // Try to find existing user
+  let existingUser = await User.findOne({ email: user.email });
+
+  // If user doesn't exist, register automatically
+  if (!existingUser) {
+    const newUser = await User.create({
+      fullname: user.name || "User",
+      username: user.nickname || user.email.split("@")[0],
+      email: user.email,
+      password: "OAuthUser@123", // dummy password
+      avatar: user.picture,
+      coverImage: "",
+    });
+
+    existingUser = newUser;
+  }
+
+  // Generate tokens
+  const accessToken = existingUser.generateAccessToken();
+  const refreshToken = existingUser.generateRefreshToken();
+
+  existingUser.refreshToken = refreshToken;
+  await existingUser.save({ validateBeforeSave: false });
+
+  const loggedInUser = await User.findById(existingUser._id).select(
+    "-password -refreshToken"
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken },
+        "Login successful"
+      )
+    );
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -456,4 +521,5 @@ export {
   updateCoverImage,
   getUserChannelProfile,
   getWatchHistory,
+  auth0LoginUser,
 };

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { axiosInstance } from "../utility/axios";
 import { toast } from "react-toastify";
 import { useUser } from "../context/UserContext";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Login = () => {
   const {
@@ -19,6 +20,8 @@ const Login = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { loginWithRedirect } = useAuth0();
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -120,7 +123,15 @@ const Login = () => {
         <h1 className="text-center font-black">Or</h1>
 
         <div className="flex gap-2">
-          <button className="flex-1 py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600">
+          <button
+            className="flex-1 py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600"
+            onClick={() =>
+              loginWithRedirect({
+                connection: "google-oauth2", // Forces Google login
+                redirectUri: window.location.origin + "/auth-callback", // You’ll handle this route
+              })
+            }
+          >
             Login with Google
           </button>
         </div>

@@ -8,10 +8,17 @@ import { CiSearch } from "react-icons/ci";
 import { useSidebar } from "../context/SidebarContext";
 import { useUser } from "../context/UserContext";
 import { Link } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Navbar = () => {
   const { toggleSidebar } = useSidebar();
   const { user, logoutUser } = useUser();
+  const { logout } = useAuth0();
+
+  const handleLogout = () => {
+    logoutUser();
+    logout({ returnTo: window.location.origin });
+  };
 
   return (
     <>
@@ -56,7 +63,7 @@ const Navbar = () => {
               <FaRegUserCircle className="h-5 w-5" />
             </Link>
             <button
-              onClick={logoutUser}
+              onClick={handleLogout}
               className="px-3 py-1 bg-red-600 rounded hover:bg-red-700 transition"
             >
               Logout

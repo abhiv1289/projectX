@@ -11,6 +11,7 @@ import {
   updateCoverImage,
   getUserChannelProfile,
   getWatchHistory,
+  auth0LoginUser,
 } from "../controllers/auth.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -54,5 +55,8 @@ router
 router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
 
 router.route("/history").get(verifyJWT, getWatchHistory);
+
+// routes/auth.routes.js
+router.post("/auth0-login", auth0LoginUser);
 
 export default router;

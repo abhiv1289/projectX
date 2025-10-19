@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { axiosInstance } from "../utility/axios";
 import { toast } from "react-toastify";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Signup = () => {
   const {
@@ -16,6 +17,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const { loginWithRedirect } = useAuth0();
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -229,6 +231,21 @@ const Signup = () => {
             {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
+
+        <h1 className="text-center font-bold">Or</h1>
+        <div className="flex gap-2">
+          <button
+            className="flex-1 py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600"
+            onClick={() =>
+              loginWithRedirect({
+                connection: "google-oauth2", // Forces Google login
+                redirectUri: window.location.origin + "/auth-callback", // You’ll handle this route
+              })
+            }
+          >
+            Login with Google
+          </button>
+        </div>
 
         {/* Footer link to Signup page */}
         <p className="text-sm text-center text-gray-600">
