@@ -5,11 +5,10 @@ import { toast } from "react-toastify";
 import Postcard from "../components/Postcard";
 
 const ChannelPosts = ({ currentUser }) => {
-  const { userId } = useParams(); // Get userId from URL
+  const { userId } = useParams();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user posts
   const fetchUserPosts = async () => {
     try {
       setLoading(true);
@@ -28,31 +27,38 @@ const ChannelPosts = ({ currentUser }) => {
   }, [userId]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white py-10 px-4 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-900 text-white py-10 px-4 flex flex-col items-center">
       <div className="w-full max-w-4xl space-y-6">
-        <h2 className="text-2xl font-bold mb-4 text-center">User Posts</h2>
+        {/* Heading */}
+        <h2 className="text-3xl font-bold text-green-400 text-center neon-text">
+          User Posts
+        </h2>
 
+        {/* Loading state */}
         {loading && (
-          <div className="text-gray-400 text-center py-10">
+          <div className="text-cyan-400 text-center py-10 animate-pulse">
             Loading posts...
           </div>
         )}
 
+        {/* No posts */}
         {!loading && posts.length === 0 && (
-          <div className="text-gray-400 text-center py-10">
-            No posts to show
-          </div>
+          <div className="text-red-500 text-center py-10">No posts to show</div>
         )}
 
-        {/* Display posts */}
+        {/* Posts list */}
         {!loading &&
           posts.map((post) => (
-            <Postcard
+            <div
               key={post._id}
-              post={post}
-              currentUser={currentUser}
-              refreshPosts={fetchUserPosts} // optional: allow refreshing after update/delete
-            />
+              className="bg-gray-800 border border-blue-500 rounded-lg hover:shadow-lg hover:shadow-blue-500 transition-shadow duration-300 p-4"
+            >
+              <Postcard
+                post={post}
+                currentUser={currentUser}
+                refreshPosts={fetchUserPosts}
+              />
+            </div>
           ))}
       </div>
     </div>

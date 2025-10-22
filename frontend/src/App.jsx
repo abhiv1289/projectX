@@ -16,6 +16,8 @@ import PlaylistDetails from "./pages/PlaylistDetails";
 import AuthCallback from "./components/AuthCallback";
 import History from "./pages/History";
 import Likedpage from "./pages/Likedpage";
+import ChannelProfile from "./pages/ChannelProfile";
+import Searchpage from "./pages/Searchpage";
 
 function App() {
   return (
@@ -35,6 +37,8 @@ function App() {
           <Route path="/playlists/:playlistId" element={<PlaylistDetails />} />
           <Route path="/history" element={<History />} />
           <Route path="/liked" element={<Likedpage />} />
+          <Route path="/c/:username" element={<ChannelProfile />} />
+          <Route path="/search" element={<Searchpage />} />
         </Route>
         <Route path="/auth-callback" element={<AuthCallback />} />
       </Routes>

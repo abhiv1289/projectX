@@ -5,14 +5,13 @@ import { VideoCard } from "../components/VideoCard";
 import { toast } from "react-toastify";
 
 const ChannelVideos = () => {
-  const { channelId } = useParams(); // from /channel/:channelId route
+  const { channelId } = useParams();
   const [videos, setVideos] = useState([]);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  // Fetch videos
   const fetchVideos = async (pageNum = 1) => {
     if (!channelId) return;
 
@@ -25,17 +24,13 @@ const ChannelVideos = () => {
 
       const data = res.data?.data?.Videos || [];
 
-      console.log("in channel videos", res);
-
       if (pageNum === 1) {
         setVideos(data);
       } else {
         setVideos((prev) => [...prev, ...data]);
       }
 
-      if (data.length < limit) {
-        setHasMore(false);
-      }
+      if (data.length < limit) setHasMore(false);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to load videos");
@@ -58,21 +53,27 @@ const ChannelVideos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white py-10 px-4 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-900 text-white py-10 px-4 flex flex-col items-center">
       <div className="w-full max-w-6xl">
-        <h1 className="text-2xl font-bold mb-6 text-center sm:text-left">
+        {/* Heading */}
+        <h1 className="text-3xl font-bold mb-6 text-center text-green-400 neon-text sm:text-left">
           Channel Videos
         </h1>
 
         {/* Videos Grid */}
         {videos.length === 0 && !loading ? (
-          <div className="text-gray-400 text-center mt-20">
+          <div className="text-red-500 text-center mt-20">
             No videos found for this channel.
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {videos.map((video) => (
-              <VideoCard key={video._id} video={video} />
+              <div
+                key={video._id}
+                className="bg-gray-800 rounded-lg border border-blue-500 hover:shadow-lg hover:shadow-blue-500 transition-shadow duration-300"
+              >
+                <VideoCard video={video} />
+              </div>
             ))}
           </div>
         )}
@@ -81,17 +82,18 @@ const ChannelVideos = () => {
         {hasMore && !loading && videos.length > 0 && (
           <div className="flex justify-center mt-8">
             <button
+              type="button"
               onClick={handleLoadMore}
-              className="px-6 py-2 rounded bg-red-600 hover:bg-red-700 transition font-semibold"
+              className="px-6 py-2 rounded bg-pink-500 hover:bg-pink-600 transition font-semibold neon-button"
             >
               Load More
             </button>
           </div>
         )}
 
-        {/* Loading Indicator */}
+        {/* Loading */}
         {loading && (
-          <div className="flex justify-center mt-8 text-gray-400">
+          <div className="flex justify-center mt-8 text-cyan-400 animate-pulse">
             Loading...
           </div>
         )}

@@ -2,7 +2,17 @@ import React, { useEffect, useState } from "react";
 import { axiosInstance } from "../utility/axios";
 import { toast } from "react-toastify";
 import { CiCamera } from "react-icons/ci";
-import ChannelVideos from "../components/ChannelVideos";
+import {
+  FaEdit,
+  FaLock,
+  FaVideo,
+  FaPencilAlt,
+  FaEye,
+  FaHeart,
+  FaComment,
+  FaUserFriends,
+} from "react-icons/fa";
+import { MdVideoLibrary } from "react-icons/md";
 import { Link } from "react-router";
 
 const Profilepage = () => {
@@ -19,10 +29,7 @@ const Profilepage = () => {
   const [showPostForm, setShowPostForm] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postMedia, setPostMedia] = useState([]);
-  // at top (with other useState hooks)
   const [channelStats, setChannelStats] = useState(null);
-
-  // Video upload section
   const [showVideoUpload, setShowVideoUpload] = useState(false);
   const [videoFile, setVideoFile] = useState(null);
   const [thumbnail, setThumbnail] = useState(null);
@@ -41,9 +48,7 @@ const Profilepage = () => {
           try {
             const statsRes = await axiosInstance.get(
               `/v1/dashboard/${response.data.data._id}`,
-              {
-                withCredentials: true,
-              }
+              { withCredentials: true }
             );
             setChannelStats(statsRes.data.data);
           } catch (err) {
@@ -56,23 +61,21 @@ const Profilepage = () => {
         toast.error("Failed to fetch user data");
       }
     };
-
     fetchUser();
-  }, [setUser]);
+  }, []);
 
   if (!user)
     return (
-      <div className="flex justify-center items-center h-screen text-gray-400">
-        Loading profile...
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-950">
+        <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+        <p className="mt-4 text-cyan-400">Loading profile...</p>
       </div>
     );
 
-  // Change Password
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword)
       return toast.error("New passwords do not match");
-
     try {
       setLoading(true);
       const res = await axiosInstance.post(
@@ -86,18 +89,15 @@ const Profilepage = () => {
       setConfirmPassword("");
       setShowPasswordForm(false);
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Failed to update password");
     } finally {
       setLoading(false);
     }
   };
 
-  // Update Fullname
   const handleFullnameChange = async (e) => {
     e.preventDefault();
     if (!fullname.trim()) return toast.error("Fullname cannot be empty");
-
     try {
       setLoading(true);
       const res = await axiosInstance.patch(
@@ -109,16 +109,14 @@ const Profilepage = () => {
       setUser((prev) => ({ ...prev, fullname }));
       setShowFullnameForm(false);
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Failed to update fullname");
     } finally {
       setLoading(false);
     }
   };
 
-  // Update Avatar
   const handleAvatarChange = (e) => {
-    if (e.target.files && e.target.files[0]) setAvatarFile(e.target.files[0]);
+    if (e.target.files?.[0]) setAvatarFile(e.target.files[0]);
   };
 
   const handleAvatarUpload = async () => {
@@ -139,16 +137,14 @@ const Profilepage = () => {
       setUser((prev) => ({ ...prev, avatar: res.data.avatarUrl }));
       setAvatarFile(null);
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Failed to update avatar");
     } finally {
       setLoading(false);
     }
   };
 
-  // Update Cover Image
   const handleCoverChange = (e) => {
-    if (e.target.files && e.target.files[0]) setCoverFile(e.target.files[0]);
+    if (e.target.files?.[0]) setCoverFile(e.target.files[0]);
   };
 
   const handleCoverUpload = async () => {
@@ -169,22 +165,18 @@ const Profilepage = () => {
       setUser((prev) => ({ ...prev, coverImage: res.data.coverUrl }));
       setCoverFile(null);
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Failed to update cover");
     } finally {
       setLoading(false);
     }
   };
 
-  // Upload Video
   const handleVideoUpload = async (e) => {
     e.preventDefault();
-
     if (!videoFile || !thumbnail || !title.trim() || !description.trim()) {
       toast.error("All fields are required!");
       return;
     }
-
     try {
       setLoading(true);
       const formData = new FormData();
@@ -192,7 +184,6 @@ const Profilepage = () => {
       formData.append("thumbnail", thumbnail);
       formData.append("title", title);
       formData.append("description", description);
-
       const res = await axiosInstance.post(
         "/v1/video/publish-video",
         formData,
@@ -201,7 +192,6 @@ const Profilepage = () => {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-
       toast.success(res.data?.message || "Video uploaded successfully!");
       setVideoFile(null);
       setThumbnail(null);
@@ -209,7 +199,6 @@ const Profilepage = () => {
       setDescription("");
       setShowVideoUpload(false);
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Failed to upload video");
     } finally {
       setLoading(false);
@@ -223,24 +212,20 @@ const Profilepage = () => {
   const handleCreatePost = async (e) => {
     e.preventDefault();
     if (!postContent.trim()) return toast.error("Post content cannot be empty");
-
     try {
       setLoading(true);
       const formData = new FormData();
       formData.append("content", postContent);
       postMedia.forEach((file) => formData.append("media", file));
-
       const res = await axiosInstance.post("/v1/post/create-post", formData, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       toast.success(res.data?.message || "Post created successfully!");
       setPostContent("");
       setPostMedia([]);
       setShowPostForm(false);
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || "Failed to create post");
     } finally {
       setLoading(false);
@@ -248,398 +233,408 @@ const Profilepage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center py-10 px-4 space-y-8">
-      {/* Profile Header */}
-      <div className="w-full max-w-4xl relative rounded-2xl shadow-xl bg-gradient-to-r from-gray-900 to-gray-800">
-        <div className="h-48 w-full rounded-t-2xl overflow-hidden relative">
-          {user.coverImage ? (
-            <img
-              src={user.coverImage}
-              alt="Cover"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-              No cover image
-            </div>
-          )}
-          <label className="absolute top-2 right-2 bg-red-600 p-2 rounded-full cursor-pointer hover:bg-red-700 transition z-20">
-            <CiCamera className="w-5 h-5 text-white" />
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleCoverChange}
-            />
-          </label>
-        </div>
-
-        <div className="flex flex-col items-center mt-[-4rem] mb-4 relative z-10">
-          <div className="relative">
-            <img
-              src={user.avatar}
-              alt={user.fullname}
-              className="w-32 h-32 rounded-full border-4 border-gray-900 shadow-lg object-cover"
-            />
-            <label className="absolute bottom-0 right-0 bg-red-600 p-1 rounded-full cursor-pointer hover:bg-red-700 transition">
-              <CiCamera className="w-5 h-5 text-white" />
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
-            </label>
-          </div>
-
-          {avatarFile && (
-            <button
-              onClick={handleAvatarUpload}
-              disabled={loading}
-              className={`mt-2 px-4 py-1 rounded bg-red-600 hover:bg-red-700 transition font-semibold ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? "Uploading..." : "Update Avatar"}
-            </button>
-          )}
-
-          {coverFile && (
-            <button
-              onClick={handleCoverUpload}
-              disabled={loading}
-              className={`mt-2 px-4 py-1 rounded bg-red-600 hover:bg-red-700 transition font-semibold ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? "Uploading..." : "Update Cover"}
-            </button>
-          )}
-        </div>
+    <div className="min-h-screen bg-gray-950 text-white pt-16 px-4 md:px-6">
+      {/* Background effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
       </div>
 
-      {/* User Info */}
-      <div className="w-full max-w-3xl bg-gray-900 rounded-2xl shadow-xl p-6 space-y-4">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold">{user.fullname}</h2>
-          <p className="text-gray-400">@{user.username}</p>
-          <button
-            onClick={() => setShowFullnameForm(!showFullnameForm)}
-            className="mt-2 text-sm text-red-500 hover:underline"
-          >
-            {showFullnameForm ? "Cancel" : "Edit Name"}
-          </button>
-        </div>
-
-        {showFullnameForm && (
-          <form onSubmit={handleFullnameChange} className="mt-4 flex gap-2">
-            <input
-              type="text"
-              value={fullname}
-              onChange={(e) => setFullname(e.target.value)}
-              className="flex-1 p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className={`px-4 py-2 rounded bg-red-600 hover:bg-red-700 transition font-semibold ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? "Updating..." : "Update"}
-            </button>
-          </form>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
-          <div>
-            <h3 className="text-gray-400 text-sm">Email</h3>
-            <p className="text-gray-200">{user.email}</p>
-          </div>
-          <div>
-            <h3 className="text-gray-400 text-sm">Created At</h3>
-            <p className="text-gray-200">
-              {new Date(user.createdAt).toLocaleDateString()}
-            </p>
-          </div>
-          <div>
-            <h3 className="text-gray-400 text-sm">Last Updated</h3>
-            <p className="text-gray-200">
-              {new Date(user.updatedAt).toLocaleDateString()}
-            </p>
-          </div>
-
-          <div className="flex flex-col space-y-2">
-            <Link
-              to={`/channel/${user._id}`}
-              className="text-center bg-amber-900 hover:bg-amber-800 transition py-2 rounded font-semibold mt-4"
-            >
-              <button>All Channel Videos</button>
-            </Link>
-            <Link
-              to={`/post/${user._id}`}
-              className="text-center bg-amber-900 hover:bg-amber-800 transition py-2 rounded font-semibold mt-4"
-            >
-              <button>All Channel Posts</button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Channel Stats */}
-      {channelStats && (
-        <div className="w-full max-w-3xl bg-gray-900 rounded-2xl shadow-xl p-6 space-y-4">
-          <h3 className="text-2xl font-semibold text-center mb-4">
-            Channel Statistics
-          </h3>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-center">
-            <div>
-              <h4 className="text-gray-400 text-sm">Subscribers</h4>
-              <p className="text-xl font-bold text-white">
-                {channelStats.totalSubscribers}
-              </p>
-            </div>
-            <div>
-              <h4 className="text-gray-400 text-sm">Videos</h4>
-              <p className="text-xl font-bold text-white">
-                {channelStats.totalVideos}
-              </p>
-            </div>
-            <div>
-              <h4 className="text-gray-400 text-sm">Total Views</h4>
-              <p className="text-xl font-bold text-white">
-                {channelStats.totalVideoViews}
-              </p>
-            </div>
-            <div>
-              <h4 className="text-gray-400 text-sm">Likes</h4>
-              <p className="text-xl font-bold text-white">
-                {channelStats.totalLikes}
-              </p>
-            </div>
-            <div>
-              <h4 className="text-gray-400 text-sm">Comments</h4>
-              <p className="text-xl font-bold text-white">
-                {channelStats.totalComments}
-              </p>
-            </div>
-            <div>
-              <h4 className="text-gray-400 text-sm">Avg Views / Video</h4>
-              <p className="text-xl font-bold text-white">
-                {Math.round(channelStats.averageViewsPerVideo)}
-              </p>
-            </div>
-          </div>
-
-          {/* Top Videos */}
-          {channelStats.topVideos?.length > 0 && (
-            <div className="mt-6">
-              <h4 className="text-lg font-semibold mb-2">
-                Top Performing Videos
-              </h4>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {channelStats.topVideos.map((video) => (
-                  <div
-                    key={video._id}
-                    className="bg-gray-800 rounded-lg overflow-hidden shadow hover:shadow-lg transition"
-                  >
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-full h-32 object-cover"
-                    />
-                    <div className="p-3">
-                      <p className="font-semibold">{video.title}</p>
-                      <p className="text-gray-400 text-sm">
-                        {video.views} views
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Change Password */}
-      <div className="w-full max-w-3xl bg-gray-900 rounded-2xl shadow-xl p-6">
-        <h3 className="text-lg font-semibold mb-4 flex justify-between items-center cursor-pointer">
-          <span>Change Password</span>
-          <button
-            onClick={() => setShowPasswordForm(!showPasswordForm)}
-            className="text-sm text-red-500 hover:underline"
-          >
-            {showPasswordForm ? "Cancel" : "Edit"}
-          </button>
-        </h3>
-        {showPasswordForm && (
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Current Password"
-              className="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            />
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New Password"
-              className="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            />
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm New Password"
-              className="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-2 rounded bg-red-600 hover:bg-red-700 transition font-semibold ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? "Updating..." : "Update Password"}
-            </button>
-          </form>
-        )}
-      </div>
-
-      {/* Upload Video (Dropdown) */}
-      <div className="w-full max-w-3xl bg-gray-900 rounded-2xl shadow-xl p-6 transition-all duration-300">
-        <h3
-          className="text-lg font-semibold mb-2 flex justify-between items-center cursor-pointer select-none"
-          onClick={() => setShowVideoUpload(!showVideoUpload)}
-        >
-          <span>Upload a New Video</span>
-          <span className="text-red-500 text-sm">
-            {showVideoUpload ? "▲" : "▼"}
-          </span>
-        </h3>
-
-        <div
-          className={`transition-all duration-300 overflow-hidden ${
-            showVideoUpload
-              ? "max-h-[1000px] opacity-100 mt-4"
-              : "max-h-0 opacity-0"
-          }`}
-        >
-          <form onSubmit={handleVideoUpload} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            />
-            <textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              required
-            />
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <label className="text-gray-400 text-sm block mb-1">
-                  Select Video File
-                </label>
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={(e) => setVideoFile(e.target.files[0])}
-                  className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-                  required
+      <div className="relative z-10 max-w-6xl mx-auto py-8 space-y-6">
+        {/* Profile Header Card */}
+        <div className="relative">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20"></div>
+          <div className="relative bg-gray-900/80 backdrop-blur-sm border border-cyan-500/30 rounded-2xl overflow-hidden">
+            {/* Cover Image */}
+            <div className="h-48 md:h-64 w-full relative group">
+              {user.coverImage ? (
+                <img
+                  src={user.coverImage}
+                  alt="Cover"
+                  className="w-full h-full object-cover"
                 />
-              </div>
-              <div className="flex-1">
-                <label className="text-gray-400 text-sm block mb-1">
-                  Select Thumbnail
-                </label>
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-center">
+                  <p className="text-gray-500">No cover image</p>
+                </div>
+              )}
+              <label className="absolute top-4 right-4 bg-gradient-to-r from-cyan-500 to-purple-500 p-3 rounded-xl cursor-pointer hover:scale-110 transition-transform shadow-lg">
+                <CiCamera className="w-5 h-5 text-white" />
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setThumbnail(e.target.files[0])}
-                  className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-                  required
+                  className="hidden"
+                  onChange={handleCoverChange}
                 />
+              </label>
+              {coverFile && (
+                <button
+                  onClick={handleCoverUpload}
+                  disabled={loading}
+                  className="absolute bottom-4 right-4 px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg font-medium hover:scale-105 transition-transform"
+                >
+                  {loading ? "Uploading..." : "Update Cover"}
+                </button>
+              )}
+            </div>
+
+            {/* Profile Info */}
+            <div className="px-6 pb-6">
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 md:-mt-20">
+                {/* Avatar */}
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur"></div>
+                  <img
+                    src={user.avatar}
+                    alt={user.fullname}
+                    className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-gray-900 object-cover"
+                  />
+                  <label className="absolute bottom-2 right-2 bg-gradient-to-r from-cyan-500 to-purple-500 p-2 rounded-full cursor-pointer hover:scale-110 transition-transform">
+                    <CiCamera className="w-4 h-4 text-white" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                    />
+                  </label>
+                </div>
+
+                {/* User Details */}
+                <div className="flex-1 text-center md:text-left mt-4 md:mt-0">
+                  <div className="flex items-center gap-3 justify-center md:justify-start">
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                      {user.fullname}
+                    </h2>
+                    <button
+                      onClick={() => setShowFullnameForm(!showFullnameForm)}
+                      className="p-2 rounded-lg hover:bg-cyan-500/10 transition-all"
+                    >
+                      <FaEdit className="w-4 h-4 text-cyan-400" />
+                    </button>
+                  </div>
+                  <p className="text-gray-400 mt-1">@{user.username}</p>
+                  <p className="text-gray-500 text-sm mt-2">{user.email}</p>
+                </div>
+
+                {avatarFile && (
+                  <button
+                    onClick={handleAvatarUpload}
+                    disabled={loading}
+                    className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg font-medium hover:scale-105 transition-transform"
+                  >
+                    {loading ? "Uploading..." : "Update Avatar"}
+                  </button>
+                )}
+              </div>
+
+              {showFullnameForm && (
+                <form
+                  onSubmit={handleFullnameChange}
+                  className="mt-6 flex gap-2"
+                >
+                  <input
+                    type="text"
+                    value={fullname}
+                    onChange={(e) => setFullname(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg font-medium hover:scale-105 transition-transform"
+                  >
+                    {loading ? "Updating..." : "Update"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Channel Stats */}
+        {channelStats && (
+          <div className="relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20"></div>
+            <div className="relative bg-gray-900/80 backdrop-blur-sm border border-cyan-500/30 rounded-2xl p-6">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-6">
+                Channel Statistics
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {[
+                  {
+                    icon: FaUserFriends,
+                    label: "Subscribers",
+                    value: channelStats.totalSubscribers,
+                    color: "cyan",
+                  },
+                  {
+                    icon: MdVideoLibrary,
+                    label: "Videos",
+                    value: channelStats.totalVideos,
+                    color: "purple",
+                  },
+                  {
+                    icon: FaEye,
+                    label: "Total Views",
+                    value: channelStats.totalVideoViews,
+                    color: "pink",
+                  },
+                  {
+                    icon: FaHeart,
+                    label: "Likes",
+                    value: channelStats.totalLikes,
+                    color: "cyan",
+                  },
+                  {
+                    icon: FaComment,
+                    label: "Comments",
+                    value: channelStats.totalComments,
+                    color: "purple",
+                  },
+                  {
+                    icon: FaEye,
+                    label: "Avg Views",
+                    value: Math.round(channelStats.averageViewsPerVideo),
+                    color: "pink",
+                  },
+                ].map((stat, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-gray-800/50 rounded-xl p-4 border border-gray-700 hover:border-cyan-500/30 transition-all"
+                  >
+                    <stat.icon
+                      className={`w-6 h-6 text-${stat.color}-400 mb-2`}
+                    />
+                    <p className="text-2xl font-bold text-white">
+                      {stat.value}
+                    </p>
+                    <p className="text-gray-400 text-sm">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Top Videos */}
+              {channelStats.topVideos?.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-lg font-semibold text-cyan-400 mb-4">
+                    Top Performing Videos
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {channelStats.topVideos.map((video) => (
+                      <div
+                        key={video._id}
+                        className="bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-cyan-500/50 transition-all group"
+                      >
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-40 object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="p-4">
+                          <p className="font-semibold text-white line-clamp-2">
+                            {video.title}
+                          </p>
+                          <p className="text-cyan-400 text-sm mt-1">
+                            {video.views} views
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Quick Links */}
+              <div className="grid md:grid-cols-2 gap-4 mt-6">
+                <Link
+                  to={`/channel/${user._id}`}
+                  className="relative px-6 py-3 rounded-lg font-medium overflow-hidden group transition-all hover:scale-105"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <MdVideoLibrary /> All Channel Videos
+                  </span>
+                </Link>
+                <Link
+                  to={`/post/${user._id}`}
+                  className="relative px-6 py-3 rounded-lg font-medium border border-cyan-500/30 hover:bg-cyan-500/10 transition-all hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  <FaPencilAlt /> All Channel Posts
+                </Link>
               </div>
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-2 rounded bg-red-600 hover:bg-red-700 transition font-semibold ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? "Uploading..." : "Upload Video"}
-            </button>
-          </form>
-        </div>
-      </div>
+          </div>
+        )}
 
-      {/* Create Post (Dropdown) */}
-      <div className="w-full max-w-3xl bg-gray-900 rounded-2xl shadow-xl p-6 transition-all duration-300">
-        <h3
-          className="text-lg font-semibold mb-2 flex justify-between items-center cursor-pointer select-none"
-          onClick={() => setShowPostForm(!showPostForm)}
-        >
-          <span>Create a New Post</span>
-          <span className="text-red-500 text-sm">
-            {showPostForm ? "▲" : "▼"}
-          </span>
-        </h3>
-
-        <div
-          className={`transition-all duration-300 overflow-hidden ${
-            showPostForm
-              ? "max-h-[1000px] opacity-100 mt-4"
-              : "max-h-0 opacity-0"
-          }`}
-        >
-          <form onSubmit={handleCreatePost} className="space-y-4">
-            <textarea
-              placeholder="What's on your mind?"
-              value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
-              className="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              rows={4}
-              required
-            />
-            <div>
-              <label className="text-gray-400 text-sm block mb-1">
-                Add Media (optional, max 5 files)
-              </label>
-              <input
-                type="file"
-                multiple
-                accept="image/*,video/*"
-                onChange={handlePostMediaChange}
-                className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-              />
+        {/* Two Column Layout */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Change Password */}
+          <div className="relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20"></div>
+            <div className="relative bg-gray-900/80 backdrop-blur-sm border border-cyan-500/30 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <FaLock className="text-cyan-400" />
+                  <h3 className="text-lg font-semibold">Change Password</h3>
+                </div>
+                <button
+                  onClick={() => setShowPasswordForm(!showPasswordForm)}
+                  className="text-cyan-400 text-sm hover:underline"
+                >
+                  {showPasswordForm ? "Cancel" : "Edit"}
+                </button>
+              </div>
+              {showPasswordForm && (
+                <form onSubmit={handlePasswordChange} className="space-y-4">
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Current Password"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                    required
+                  />
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New Password"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                    required
+                  />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm New Password"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg font-medium hover:scale-105 transition-transform"
+                  >
+                    {loading ? "Updating..." : "Update Password"}
+                  </button>
+                </form>
+              )}
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-2 rounded bg-red-600 hover:bg-red-700 transition font-semibold ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+          </div>
+
+          {/* Upload Video */}
+          <div className="relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20"></div>
+            <div className="relative bg-gray-900/80 backdrop-blur-sm border border-cyan-500/30 rounded-2xl p-6">
+              <div
+                className="flex items-center justify-between mb-4 cursor-pointer"
+                onClick={() => setShowVideoUpload(!showVideoUpload)}
+              >
+                <div className="flex items-center gap-2">
+                  <FaVideo className="text-cyan-400" />
+                  <h3 className="text-lg font-semibold">Upload Video</h3>
+                </div>
+                <span className="text-cyan-400">
+                  {showVideoUpload ? "▲" : "▼"}
+                </span>
+              </div>
+              {showVideoUpload && (
+                <form onSubmit={handleVideoUpload} className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                    required
+                  />
+                  <textarea
+                    placeholder="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 resize-none"
+                    rows="3"
+                    required
+                  />
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => setVideoFile(e.target.files[0])}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-500 file:text-white hover:file:bg-cyan-600"
+                    required
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setThumbnail(e.target.files[0])}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-500 file:text-white hover:file:bg-cyan-600"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg font-medium hover:scale-105 transition-transform"
+                  >
+                    {loading ? "Uploading..." : "Upload Video"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Create Post */}
+        <div className="relative">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20"></div>
+          <div className="relative bg-gray-900/80 backdrop-blur-sm border border-cyan-500/30 rounded-2xl p-6">
+            <div
+              className="flex items-center justify-between mb-4 cursor-pointer"
+              onClick={() => setShowPostForm(!showPostForm)}
             >
-              {loading ? "Posting..." : "Post"}
-            </button>
-          </form>
+              <div className="flex items-center gap-2">
+                <FaPencilAlt className="text-cyan-400" />
+                <h3 className="text-lg font-semibold">Create New Post</h3>
+              </div>
+              <span className="text-cyan-400">{showPostForm ? "▲" : "▼"}</span>
+            </div>
+            {showPostForm && (
+              <form onSubmit={handleCreatePost} className="space-y-4">
+                <textarea
+                  placeholder="What's on your mind?"
+                  value={postContent}
+                  onChange={(e) => setPostContent(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 resize-none"
+                  rows="4"
+                  required
+                />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  onChange={handlePostMediaChange}
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-500 file:text-white hover:file:bg-cyan-600"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg font-medium hover:scale-105 transition-transform"
+                >
+                  {loading ? "Posting..." : "Create Post"}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
+
+      <style>{`
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(17, 24, 39, 0.5); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #06b6d4, #a855f7); border-radius: 4px; }
+      `}</style>
     </div>
   );
 };

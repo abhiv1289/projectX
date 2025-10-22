@@ -11,7 +11,7 @@ const PlaylistCard = ({ playlist, refresh }) => {
 
   const handleDelete = async () => {
     try {
-      await axiosInstance.delete(`/${playlist._id}`);
+      await axiosInstance.delete(`/v1/playlist/${playlist._id}`);
       toast.success("Playlist deleted!");
       refresh();
     } catch (err) {
@@ -37,29 +37,29 @@ const PlaylistCard = ({ playlist, refresh }) => {
   };
 
   return (
-    <div className="border rounded p-4 mb-3 bg-white">
+    <div className="bg-gray-900/50 border border-pink-500 rounded-lg p-4 mb-4 hover:shadow-pink-500 hover:shadow-lg transition">
       {isEditing ? (
         <>
           <input
-            className="border w-full p-2 mb-2 rounded"
+            className="w-full p-2 mb-2 rounded bg-gray-800 text-white border border-blue-500 focus:ring-2 focus:ring-pink-500 outline-none"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <textarea
-            className="border w-full p-2 mb-2 rounded"
+            className="w-full p-2 mb-2 rounded bg-gray-800 text-white border border-blue-500 focus:ring-2 focus:ring-pink-500 outline-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
           <div className="flex gap-2">
             <button
               onClick={handleUpdate}
-              className="bg-green-500 text-white px-3 py-1 rounded"
+              className="px-3 py-1 rounded bg-green-600 hover:bg-green-700 text-white neon-button transition"
             >
               Save
             </button>
             <button
               onClick={() => setIsEditing(false)}
-              className="bg-gray-400 text-white px-3 py-1 rounded"
+              className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white neon-button transition"
             >
               Cancel
             </button>
@@ -67,27 +67,29 @@ const PlaylistCard = ({ playlist, refresh }) => {
         </>
       ) : (
         <>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             <div
               onClick={() => navigate(`/playlists/${playlist._id}`)}
               className="cursor-pointer"
             >
-              <h3 className="font-bold text-lg">{playlist.name}</h3>
-              <p className="text-sm text-gray-600">{playlist.description}</p>
-              <p className="text-xs text-gray-400">
+              <h3 className="text-lg font-bold text-green-400 neon-text">
+                {playlist.name}
+              </h3>
+              <p className="text-sm text-gray-400">{playlist.description}</p>
+              <p className="text-xs text-gray-500">
                 {playlist.videos?.length || 0} videos
               </p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-yellow-500 text-white px-3 py-1 rounded"
+                className="px-3 py-1 rounded bg-yellow-500 hover:bg-yellow-600 text-white neon-button transition"
               >
                 Edit
               </button>
               <button
                 onClick={handleDelete}
-                className="bg-red-500 text-white px-3 py-1 rounded"
+                className="px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white neon-button transition"
               >
                 Delete
               </button>

@@ -8,7 +8,6 @@ const Likedpage = () => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Function to fetch videos
   useEffect(() => {
     fetchVideos();
   }, []);
@@ -16,8 +15,7 @@ const Likedpage = () => {
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/v1/like/videos"); // replace with your endpoint
-
+      const response = await axiosInstance.get("/v1/like/videos");
       setVideos(response.data.data);
     } catch (error) {
       console.error("Error fetching videos:", error);
@@ -26,13 +24,10 @@ const Likedpage = () => {
     }
   };
 
-  // Function to fetch posts
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/v1/like/posts"); // replace with your endpoint
-      //   console.log(response.data.data);
-
+      const response = await axiosInstance.get("/v1/like/posts");
       setPosts(response.data.data);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -41,13 +36,10 @@ const Likedpage = () => {
     }
   };
 
-  // Function to fetch comments
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/v1/like/comments"); // replace with your endpoint
-      //   console.log(response.data.data);
-
+      const response = await axiosInstance.get("/v1/like/comments");
       setComments(response.data.data);
     } catch (error) {
       console.error("Error fetching comments:", error);
@@ -56,29 +48,47 @@ const Likedpage = () => {
     }
   };
 
-  // Render content based on active tab
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    if (tab === "videos") fetchVideos();
+    else if (tab === "posts") fetchPosts();
+    else if (tab === "comments") fetchComments();
+  };
+
   const renderContent = () => {
-    if (loading) return <p>Loading...</p>;
+    if (loading)
+      return (
+        <p className="text-cyan-400 text-center mt-10 animate-pulse">
+          Loading...
+        </p>
+      );
 
     switch (activeTab) {
       case "videos":
+        if (videos.length === 1)
+          return <p className="text-red-500">No liked videos found.</p>;
         return (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-          >
+          <div className="flex flex-col gap-4">
             {videos.map((item) => (
               <div
                 key={item._id}
-                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                className="flex items-center gap-4 p-3 border border-blue-500 rounded-lg hover:shadow-lg hover:shadow-blue-500 transition-shadow duration-300"
               >
                 <img
-                  src={item.video.thumbnail}
-                  alt={item.video.title}
+                  src={
+                    item?.video?.thumbnail || "https://via.placeholder.com/80"
+                  }
+                  alt={item?.video?.title || "No title"}
                   width={80}
+                  className="rounded-md border border-pink-500"
                 />
                 <div>
-                  <h4>{item.video.title}</h4>
-                  <p>Duration: {item.video.duration}s</p>
+                  <h4 className="text-green-400 font-semibold">
+                    {item?.video?.title || "Untitled"}
+                  </h4>
+                  <p className="text-cyan-400 text-sm">
+                    Duration: {item?.video?.duration || "0"}s
+                  </p>
                 </div>
               </div>
             ))}
@@ -86,26 +96,27 @@ const Likedpage = () => {
         );
 
       case "posts":
+        if (!posts.length)
+          return <p className="text-red-500">No liked posts found.</p>;
         return (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-          >
+          <div className="flex flex-col gap-4">
             {posts.map((item) => (
               <div
                 key={item._id}
-                style={{
-                  padding: "10px",
-                  border: "1px solid #ddd",
-                  borderRadius: "5px",
-                }}
+                className="p-4 border border-purple-500 rounded-lg hover:shadow-lg hover:shadow-purple-500 transition-shadow duration-300"
               >
-                <h4>{item.post.content}</h4>
-                {item.post.media && item.post.media.length > 0 && (
-                  <div
-                    style={{ display: "flex", gap: "10px", marginTop: "5px" }}
-                  >
+                <p className="text-green-400 font-medium">
+                  {item.post.content}
+                </p>
+                {item.post.media?.length > 0 && (
+                  <div className="flex gap-2 mt-2">
                     {item.post.media.map((m, i) => (
-                      <img key={i} src={m} alt="post media" width={80} />
+                      <img
+                        key={i}
+                        src={m}
+                        alt="post media"
+                        className="w-20 rounded-md border border-pink-500"
+                      />
                     ))}
                   </div>
                 )}
@@ -115,20 +126,16 @@ const Likedpage = () => {
         );
 
       case "comments":
+        if (!comments.length)
+          return <p className="text-red-500">No liked comments found.</p>;
         return (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-          >
+          <div className="flex flex-col gap-4">
             {comments.map((item) => (
               <div
                 key={item._id}
-                style={{
-                  padding: "10px",
-                  border: "1px solid #ddd",
-                  borderRadius: "5px",
-                }}
+                className="p-3 border border-orange-500 rounded-lg hover:shadow-lg hover:shadow-orange-500 transition-shadow duration-300"
               >
-                {item.comment.content}
+                <p className="text-cyan-400">{item.comment.content}</p>
               </div>
             ))}
           </div>
@@ -139,68 +146,27 @@ const Likedpage = () => {
     }
   };
 
-  // Handle tab change
-  const handleTabClick = (tab) => {
-    setActiveTab(tab);
-
-    // Fetch data based on selected tab
-    if (tab === "videos") fetchVideos();
-    else if (tab === "posts") fetchPosts();
-    else if (tab === "comments") fetchComments();
-  };
-
-  // Fetch videos by default on page load
-  useEffect(() => {
-    fetchVideos();
-  }, []);
-
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      {/* Tab Buttons */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <button
-          onClick={() => handleTabClick("videos")}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: activeTab === "videos" ? "#4CAF50" : "#f0f0f0",
-            color: activeTab === "videos" ? "#fff" : "#000",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Videos
-        </button>
-        <button
-          onClick={() => handleTabClick("posts")}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: activeTab === "posts" ? "#4CAF50" : "#f0f0f0",
-            color: activeTab === "posts" ? "#fff" : "#000",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Posts
-        </button>
-        <button
-          onClick={() => handleTabClick("comments")}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: activeTab === "comments" ? "#4CAF50" : "#f0f0f0",
-            color: activeTab === "comments" ? "#fff" : "#000",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Comments
-        </button>
+    <div className="p-6 bg-gray-900 min-h-screen font-sans text-white">
+      {/* Tabs */}
+      <div className="flex gap-4 mb-6">
+        {["videos", "posts", "comments"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => handleTabClick(tab)}
+            className={`px-4 py-2 rounded-md font-semibold transition-all duration-300 ${
+              activeTab === tab
+                ? "bg-pink-500 text-black shadow-lg shadow-pink-500"
+                : "bg-gray-800 text-gray-300 hover:shadow-lg hover:shadow-gray-500"
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
       {/* Content */}
-      <div>{renderContent()}</div>
+      {renderContent()}
     </div>
   );
 };

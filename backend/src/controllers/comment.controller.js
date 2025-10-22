@@ -134,6 +134,8 @@ const deleteComment = asyncHandler(async (req, res) => {
 
   const deletedComment = await Comment.findByIdAndDelete(commentId);
 
+  await Like.deleteMany({ comment: commentId });
+
   if (!deletedComment) {
     throw new ApiError(404, "comment not found!");
   }

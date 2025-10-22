@@ -32,6 +32,12 @@ const videoSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    viewedBy: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     isPublished: {
       type: Boolean,
       default: true,

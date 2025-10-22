@@ -89,6 +89,10 @@ const deletePost = asyncHandler(async (req, res) => {
 
   const deletedPost = await Post.findByIdAndDelete(postId);
 
+  await Comment.deleteMany({ post: postId });
+
+  await Like.deleteMany({ post: postId });
+
   if (!deletedPost) {
     throw new ApiError(404, "Post not found!");
   }

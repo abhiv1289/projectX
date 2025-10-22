@@ -27,11 +27,8 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
   const fileInputRef = useRef(null);
 
   const isOwner = (user && user?._id === owner?._id) || user?._id === owner;
-
-  // Hide unpublished videos from non-owners
   if (!published && !isOwner) return null;
 
-  // Format views safely
   const formatViews = (count) => {
     if (!count || isNaN(count)) return "0";
     if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
@@ -39,7 +36,6 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
     return count.toString();
   };
 
-  // Format duration (seconds → mm:ss)
   const formatDuration = (seconds) => {
     if (!seconds) return "0:00";
     const mins = Math.floor(seconds / 60);
@@ -47,7 +43,6 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // DELETE VIDEO
   const handleDelete = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -66,7 +61,6 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
     }
   };
 
-  // UPDATE THUMBNAIL
   const triggerFileUpload = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -104,7 +98,6 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
     }
   };
 
-  // TOGGLE PUBLISH STATUS
   const handleTogglePublish = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -132,7 +125,6 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
         { videoId: _id },
         { withCredentials: true }
       );
-
       navigate(`/video/${_id}`);
     } catch (error) {
       console.log(error);
@@ -140,10 +132,10 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
   };
 
   return (
-    <div className="group overflow-hidden bg-gray-900 border border-gray-800 rounded-xl transition-all hover:bg-gray-800 relative">
+    <div className="group overflow-hidden bg-gray-900/50 border border-pink-500 rounded-xl hover:shadow-pink-500 hover:shadow-lg transition-all relative">
       {/* Thumbnail */}
       <div className="cursor-pointer" onClick={handleClick}>
-        <div className="relative aspect-video overflow-hidden">
+        <div className="relative aspect-video overflow-hidden rounded-lg border border-neon-blue">
           <img
             src={thumbnail}
             alt={title}
@@ -158,7 +150,7 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
       {/* Info */}
       <div className="p-3">
         <h3
-          className="font-semibold line-clamp-2 mb-2 text-white group-hover:text-red-500 transition-colors cursor-pointer"
+          className="font-semibold line-clamp-2 mb-2 text-white group-hover:text-red-500 transition-colors cursor-pointer neon-text"
           onClick={() => navigate(`/video/${_id}`)}
         >
           {title || "Untitled Video"}
@@ -176,13 +168,12 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
 
         {/* Buttons */}
         <div className="flex flex-wrap gap-2 mt-3">
-          {/* Owner-only buttons */}
           {isOwner && (
             <>
               <button
                 onClick={triggerFileUpload}
                 disabled={loading}
-                className={`px-3 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 transition ${
+                className={`px-3 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 neon-button transition ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
@@ -195,15 +186,17 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
                 onChange={handleFileChange}
                 className="hidden"
               />
+
               <button
                 onClick={handleDelete}
                 disabled={loading}
-                className={`px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 transition ${
+                className={`px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 neon-button transition ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 Delete
               </button>
+
               <button
                 onClick={handleTogglePublish}
                 disabled={loading}
@@ -211,27 +204,27 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
                   published
                     ? "bg-green-600 hover:bg-green-700"
                     : "bg-yellow-600 hover:bg-yellow-700"
-                } transition ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                } neon-button transition ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
                 {published ? "Unpublish" : "Publish"}
               </button>
             </>
           )}
 
-          {/* Playlist button visible to all */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowPlaylistModal(true);
             }}
-            className="px-3 py-1 text-xs rounded bg-purple-600 hover:bg-purple-700 text-white transition"
+            className="px-3 py-1 text-xs rounded bg-purple-600 hover:bg-purple-700 text-white neon-button transition"
           >
             + Playlist
           </button>
         </div>
       </div>
 
-      {/* Playlist Modal */}
       {showPlaylistModal && (
         <PlaylistModal
           videoId={_id}

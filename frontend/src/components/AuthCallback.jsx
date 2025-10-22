@@ -15,18 +15,13 @@ const AuthCallback = () => {
       if (!isAuthenticated || !user) return;
 
       try {
-        // Send user data to backend
         const response = await axiosInstance.post(
           "/v1/auth/auth0-login",
           { user },
           { withCredentials: true }
         );
 
-        console.log("Auth0 login success:", response.data.data);
-
-        // Save user in context
         loginUser(response.data.data.user);
-
         toast.success("Welcome " + user.name);
         navigate("/");
       } catch (error) {
@@ -39,9 +34,22 @@ const AuthCallback = () => {
     syncUserWithBackend();
   }, [isAuthenticated, user, loginUser, navigate]);
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <p className="text-cyan-400 text-xl animate-pulse">
+          Finalizing your login<span className="ml-1">...</span>
+        </p>
+      </div>
+    );
 
-  return <p>Finalizing your login...</p>;
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <p className="text-cyan-400 text-xl animate-pulse">
+        Finalizing your login<span className="ml-1">...</span>
+      </p>
+    </div>
+  );
 };
 
 export default AuthCallback;

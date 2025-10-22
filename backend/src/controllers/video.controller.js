@@ -3,6 +3,9 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
+import mongoose from "mongoose";
+import Comment from "../models/comment.model.js";
+import Like from "../models/like.model.js";
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
@@ -57,6 +60,10 @@ const deleteVideo = asyncHandler(async (req, res) => {
   if (!video) {
     throw new ApiError(404, "Video not found!");
   }
+
+  await Comment.deleteMany({ video: videoId });
+
+  await Like.deleteMany({ video: videoId });
 
   await Video.deleteOne({ _id: videoId });
 
@@ -147,19 +154,27 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const { userId } = req.query;
 
   if (!videoId) {
     throw new ApiError(400, "Not a valid video id!");
   }
 
-  const video = await Video.findByIdAndUpdate(
-    videoId,
-    { $inc: { views: 1 } },
-    { new: true }
+  const video = await Video.findById(videoId).populate(
+    "owner",
+    "avatar fullname username"
   );
 
   if (!video) {
     throw new ApiError(400, "Video not found!");
+  }
+
+  if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+    if (!video.viewedBy.includes(userId)) {
+      video.views += 1;
+      video.viewedBy.push(userId);
+      await video.save();
+    }
   }
 
   return res

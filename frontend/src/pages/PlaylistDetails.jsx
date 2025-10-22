@@ -33,39 +33,53 @@ const PlaylistDetails = () => {
     fetchPlaylist();
   }, []);
 
-  if (!playlist) return <p>Loading...</p>;
+  if (!playlist)
+    return (
+      <p className="text-cyan-400 text-center mt-10 animate-pulse">
+        Loading...
+      </p>
+    );
 
   return (
-    <div className="max-w-3xl mx-auto mt-6">
-      <h1 className="text-2xl font-bold mb-2">{playlist.name}</h1>
-      <p className="text-gray-600 mb-4">{playlist.description}</p>
+    <div className="max-w-4xl mx-auto mt-8 p-6 bg-gray-900 rounded-lg shadow-lg border border-gray-700">
+      {/* Playlist Header */}
+      <h1 className="text-3xl font-bold text-green-400 mb-2 neon-text">
+        {playlist.name}
+      </h1>
+      <p className="text-gray-400 mb-6">{playlist.description}</p>
+
+      {/* Videos List */}
       {playlist.videos.length === 0 ? (
-        <p>No videos in this playlist.</p>
+        <p className="text-red-500 text-center">No videos in this playlist.</p>
       ) : (
-        playlist.videos.map((v) => (
-          <div
-            key={v._id}
-            className="flex items-center justify-between border p-2 rounded mb-2"
-          >
+        <div className="flex flex-col gap-4">
+          {playlist.videos.map((v) => (
             <div
-              className="flex items-center gap-2"
-              onClick={() => navigate(`/video/${v._id}`)}
+              key={v._id}
+              className="flex items-center justify-between p-3 border border-blue-500 rounded-lg hover:shadow-lg hover:shadow-blue-500 transition-shadow duration-300 cursor-pointer bg-gray-800"
             >
-              <img
-                src={v.thumbnail}
-                alt={v.title}
-                className="w-16 h-10 rounded object-cover"
-              />
-              <p>{v.title}</p>
+              <div
+                className="flex items-center gap-3"
+                onClick={() => navigate(`/video/${v._id}`)}
+              >
+                <img
+                  src={v.thumbnail}
+                  alt={v.title}
+                  className="w-20 h-12 rounded-md object-cover border border-pink-500"
+                />
+                <p className="text-cyan-400 font-medium hover:text-green-400">
+                  {v.title}
+                </p>
+              </div>
+              <button
+                onClick={() => handleRemoveVideo(v._id)}
+                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors duration-300"
+              >
+                Remove
+              </button>
             </div>
-            <button
-              onClick={() => handleRemoveVideo(v._id)}
-              className="bg-red-500 text-white px-2 py-1 rounded"
-            >
-              Remove
-            </button>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );

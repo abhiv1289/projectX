@@ -77,4 +77,35 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     );
 });
 
-export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
+const isSubscribed = asyncHandler(async (req, res) => {
+  const { channelId } = req.params;
+
+  if (!channelId) {
+    throw new ApiError(400, "Provide a valid channelId");
+  }
+
+  // Check if a subscription exists for the logged-in user and the channel
+  const subscription = await Subscription.findOne({
+    channel: channelId,
+    subscriber: req.user?._id,
+  });
+
+  const subscribed = !!subscription; // true if subscription exists, false otherwise
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { subscribed },
+        "Subscription status fetched successfully!"
+      )
+    );
+});
+
+export {
+  toggleSubscription,
+  getUserChannelSubscribers,
+  getSubscribedChannels,
+  isSubscribed,
+};

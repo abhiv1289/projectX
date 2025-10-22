@@ -15,7 +15,6 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editContent, setEditContent] = useState("");
 
-  // Fetch comments
   const fetchComments = async (pageNum = 1) => {
     try {
       setLoading(true);
@@ -71,7 +70,6 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
     }
   };
 
-  // Add new comment
   const handleAddComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return toast.error("Please enter a comment");
@@ -100,7 +98,6 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
     }
   };
 
-  // Edit comment
   const handleEditComment = async (commentId) => {
     if (!editContent.trim()) return toast.error("Please enter text");
     try {
@@ -121,7 +118,6 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
     }
   };
 
-  // Delete comment
   const handleDeleteComment = async (commentId) => {
     if (!window.confirm("Are you sure you want to delete this comment?"))
       return;
@@ -141,7 +137,7 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
   return (
     <div className="mt-8">
       {/* Header */}
-      <h2 className="text-lg font-semibold mb-4 text-white">
+      <h2 className="text-lg font-bold mb-4 text-green-400 neon-text">
         Comments ({comments.length})
       </h2>
 
@@ -154,14 +150,14 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
           <img
             src={user?.avatar || "/default-avatar.png"}
             alt={user?.username}
-            className="w-10 h-10 rounded-full object-cover"
+            className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
           />
           <div className="flex-1">
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a public comment..."
-              className="w-full bg-gray-800 text-white p-2 rounded-lg outline-none resize-none focus:ring-2 focus:ring-red-500"
+              className="w-full bg-gray-800 text-white p-2 rounded-lg outline-none resize-none focus:ring-2 focus:ring-pink-500"
               rows={2}
             />
             <div className="flex justify-end mt-2">
@@ -171,7 +167,7 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
                 className={`px-4 py-1 rounded text-sm font-semibold transition ${
                   posting
                     ? "bg-gray-600 cursor-not-allowed"
-                    : "bg-red-600 hover:bg-red-700"
+                    : "bg-pink-500 hover:bg-pink-600"
                 }`}
               >
                 {posting ? "Posting..." : "Comment"}
@@ -185,9 +181,9 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
 
       {/* Comments List */}
       {loading && page === 1 ? (
-        <p className="text-gray-400">Loading comments...</p>
+        <p className="text-cyan-400 animate-pulse">Loading comments...</p>
       ) : comments.length === 0 ? (
-        <p className="text-gray-400">No comments yet. Be the first!</p>
+        <p className="text-red-500">No comments yet. Be the first!</p>
       ) : (
         <div className="space-y-5">
           {comments.map((comment) => {
@@ -199,17 +195,17 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
             return (
               <div
                 key={comment._id}
-                className="flex gap-3 bg-gray-900/50 p-3 rounded-lg"
+                className="flex gap-3 bg-gray-900/50 p-3 rounded-lg border border-blue-500 hover:shadow-lg hover:shadow-blue-500 transition"
               >
                 <img
                   src={comment.owner?.avatar || "/default-avatar.png"}
                   alt={comment.owner?.username}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-green-400 neon-text">
                         {comment.owner?.username || "Unknown"}
                       </span>
                       <span className="text-gray-400 text-xs">
@@ -244,7 +240,7 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
                       <textarea
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
-                        className="w-full bg-gray-800 text-white p-2 rounded-lg resize-none outline-none"
+                        className="w-full bg-gray-800 text-white p-2 rounded-lg resize-none outline-none focus:ring-2 focus:ring-green-500"
                         rows={2}
                       />
                       <div className="flex justify-end mt-2 gap-2">
@@ -267,6 +263,7 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
                       {comment.content}
                     </p>
                   )}
+
                   <div className="flex items-center gap-3 mt-2">
                     <button
                       onClick={() => handleToggleLike(comment._id)}
@@ -297,7 +294,7 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
               setPage((p) => p + 1);
               fetchComments(page + 1);
             }}
-            className="text-sm px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-white"
+            className="text-sm px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-white neon-button"
           >
             Load more
           </button>
