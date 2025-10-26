@@ -91,15 +91,15 @@ const Videopage = () => {
 
         setVideo(videoData);
 
-        // Fetch subscribers count
-        const statsRes = await axiosInstance.get(
-          `/v1/subscription/c/${videoData.owner._id}`, // fetch subscribers list
-          { withCredentials: true }
-        );
-        setSubscribersCount(statsRes.data.data.length || 0);
-
-        // Fetch subscription status for current user
+        // ✅ Fetch subscribers count — only if logged in
         if (user?._id) {
+          const statsRes = await axiosInstance.get(
+            `/v1/subscription/c/${videoData.owner._id}`,
+            { withCredentials: true }
+          );
+          setSubscribersCount(statsRes.data.data.length || 0);
+
+          // ✅ Fetch subscription status — only if logged in
           const subRes = await axiosInstance.get(
             `/v1/subscription/is-subscribed/${videoData.owner._id}`,
             { withCredentials: true }
@@ -107,15 +107,21 @@ const Videopage = () => {
           setIsSubscribed(subRes.data.data.subscribed);
         }
 
-        // Fetch likes separately
+        // ✅ Likes count and status (still accessible for guests)
         const likesCount = await axiosInstance.get(
           `/v1/like/get-video-like/${videoId}`
         );
-        const isLikedRes = await axiosInstance.get(
-          `/v1/like/video/${videoId}?userId=${user?._id}`
-        );
-        setIsLiked(isLikedRes.data.isLiked);
         setLikeCount(likesCount.data.likeCount || 0);
+
+        // Only check if liked if user logged in
+        if (user?._id) {
+          const isLikedRes = await axiosInstance.get(
+            `/v1/like/video/${videoId}?userId=${user?._id}`
+          );
+          setIsLiked(isLikedRes.data.isLiked);
+        } else {
+          setIsLiked(false);
+        }
 
         setLoading(false);
       } catch (error) {

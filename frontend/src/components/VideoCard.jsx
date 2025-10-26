@@ -120,11 +120,16 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
 
   const handleClick = async () => {
     try {
-      await axiosInstance.post(
-        "/v1/auth/add-to-history",
-        { videoId: _id },
-        { withCredentials: true }
-      );
+      // If user is logged in, add video to history
+      if (user && user._id) {
+        await axiosInstance.post(
+          "/v1/auth/add-to-history",
+          { videoId: _id },
+          { withCredentials: true }
+        );
+      }
+
+      // Navigate to video page (works for both logged-in and guest users)
       navigate(`/video/${_id}`);
     } catch (error) {
       console.log(error);
