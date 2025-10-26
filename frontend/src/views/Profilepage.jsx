@@ -39,13 +39,9 @@ const Profilepage = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem("token"); // or wherever you store it
         const response = await axiosInstance.get("/v1/auth/get-user", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         });
-
         setUser(response.data.data);
         setFullname(response.data.data.fullname);
         if (response.data?.data?._id) {
