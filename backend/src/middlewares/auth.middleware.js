@@ -4,36 +4,58 @@ import jwt from "jsonwebtoken";
 
 export const verifyJWT = async (req, res, next) => {
   try {
+    // 1️⃣ Get token from cookies or Authorization header
     const token =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      throw new ApiError(401, "Unauthorized Request.");
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Unauthorized request. Token missing.",
+        });
     }
 
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
-
-    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-
-    if (!decodedToken) {
-      throw new ApiError(401, "Invalid Access Token.");
+    // 2️⃣ Verify token
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (err) {
+      console.error("JWT verification error:", err.message);
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid or expired access token." });
     }
 
-    const user = await User.findById(decodedToken?._id).select(
+    // 3️⃣ Check if decoded token has user ID
+    if (!decodedToken?._id) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid access token." });
+    }
+
+    // 4️⃣ Fetch user from DB
+    const user = await User.findById(decodedToken._id).select(
       "-password -refreshToken"
     );
-
     if (!user) {
-      throw new ApiError(401, "Invalid Access Token.");
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found for this token." });
     }
 
+    // 5️⃣ Attach user to request
     req.user = user;
     next();
   } catch (error) {
-    throw new ApiError(400, "Invalid access Token");
+    console.error("verifyJWT middleware error:", error);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Server error during token verification.",
+      });
   }
 };

@@ -11,7 +11,7 @@ import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
-    const user = await User.findOne(userId);
+    const user = await User.findById(userId);
 
     const accessToken = await user.generateAccessToken();
 
@@ -122,8 +122,8 @@ const auth0LoginUser = asyncHandler(async (req, res) => {
   }
 
   // Generate tokens
-  const accessToken = existingUser.generateAccessToken();
-  const refreshToken = existingUser.generateRefreshToken();
+  const accessToken = await existingUser.generateAccessToken();
+  const refreshToken = await existingUser.generateRefreshToken();
 
   existingUser.refreshToken = refreshToken;
   await existingUser.save({ validateBeforeSave: false });
@@ -134,7 +134,8 @@ const auth0LoginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.MODE === "production",
+    sameSite: process.env.MODE === "production" ? "none" : "lax",
   };
 
   return res
@@ -188,7 +189,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.MODE === "production",
+    sameSite: process.env.MODE === "production" ? "none" : "lax",
   };
 
   return res
@@ -223,7 +225,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.MODE === "production",
+    sameSite: process.env.MODE === "production" ? "none" : "lax",
   };
 
   return res
@@ -260,13 +263,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Refresh token is expired or used");
   }
 
-  const { accessToken, newRefreshToken } = await generateAccessAndRefreshToken(
-    user._id
-  );
+  const { accessToken, refreshToken: newRefreshToken } =
+    await generateAccessAndRefreshToken(user._id);
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.MODE === "production",
+    sameSite: process.env.MODE === "production" ? "none" : "lax",
   };
 
   return res
@@ -321,7 +324,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findByIdAndUpdate(
-    req.user?.id,
+    req.user?._id,
     {
       $set: {
         fullname: fullname,
