@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.ORIGIN_URL || "http://localhost:5173",
     credentials: true,
   })
 );
