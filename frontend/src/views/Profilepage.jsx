@@ -101,7 +101,7 @@ const Profilepage = () => {
     try {
       setLoading(true);
       const res = await axiosInstance.patch(
-        "/v1/auth/update-fullname",
+        "/v1/auth/update-details",
         { fullname },
         { withCredentials: true }
       );
