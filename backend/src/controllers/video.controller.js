@@ -6,6 +6,7 @@ import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
 import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
+import User from "../models/user.model.js";
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
@@ -243,6 +244,72 @@ const getAllVideos = asyncHandler(async (req, res) => {
     );
 });
 
+const getTrendingVideos = asyncHandler(async (req, res) => {
+  const trendingVideos = await Video.find({ isPublished: true })
+    .sort({ views: -1 })
+    .limit(10);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { trendingVideos },
+        "Trending videos fetched successfully!"
+      )
+    );
+});
+
+const addToWatchLater = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { videoId } = req.body;
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(400, "Video not found");
+  }
+
+  const user = await User.findById(userId);
+
+  if (user.watchLater.includes(videoId)) {
+    throw new ApiError(400, "Video already in watch later list!");
+  }
+
+  user.watchLater.push(videoId);
+  await user.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Added to Watch Later successfully!"));
+});
+
+const removeFromWatchLater = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { videoId } = req.body;
+
+  await User.findByIdAndUpdate(
+    userId,
+    {
+      $pull: {
+        watchLater: videoId,
+      },
+    },
+    { new: true }
+  );
+
+  res.status(200).json(new ApiResponse(200, {}, "Removed From Watch Later!"));
+});
+
+const getWatchLaterVideos = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId).populate("watchLater");
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user.watchLater, "watch later videos fetched!"));
+});
+
 export {
   publishAVideo,
   deleteVideo,
@@ -250,4 +317,8 @@ export {
   togglePublishStatus,
   getVideoById,
   getAllVideos,
+  getTrendingVideos,
+  getWatchLaterVideos,
+  addToWatchLater,
+  removeFromWatchLater,
 };

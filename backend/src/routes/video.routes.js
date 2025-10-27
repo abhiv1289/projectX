@@ -6,6 +6,10 @@ import {
   togglePublishStatus,
   getVideoById,
   getAllVideos,
+  getTrendingVideos,
+  getWatchLaterVideos,
+  addToWatchLater,
+  removeFromWatchLater,
 } from "../controllers/video.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -46,8 +50,14 @@ router.route("/search").get(getAllVideos);
 
 router.route("/comment/:videoId").post(verifyJWT, addComment);
 
+router.route("/list").get(verifyJWT, getWatchLaterVideos);
+router.route("/trending").get(getTrendingVideos);
 router.route("/:videoId").get(getVideoComments);
 
 router.route("/toggle-like/:videoId").post(verifyJWT, toggleVideoLike);
+
+router.route("/add").post(verifyJWT, addToWatchLater);
+
+router.route("/remove").post(verifyJWT, removeFromWatchLater);
 
 export default router;

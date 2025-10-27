@@ -18,6 +18,8 @@ import History from "./pages/History";
 import Likedpage from "./pages/Likedpage";
 import ChannelProfile from "./pages/ChannelProfile";
 import Searchpage from "./pages/Searchpage";
+import Trending from "./pages/Trending";
+import WatchLater from "./pages/WatchLater";
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
           <Route path="/liked" element={<Likedpage />} />
           <Route path="/c/:username" element={<ChannelProfile />} />
           <Route path="/search" element={<Searchpage />} />
+          <Route path="/trending" element={<Trending />} />
+          <Route path="/watch-later" element={<WatchLater />} />
         </Route>
         <Route path="/auth-callback" element={<AuthCallback />} />
       </Routes>

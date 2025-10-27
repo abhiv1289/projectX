@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../utility/axios";
 import { toast } from "react-toastify";
 import { useUser } from "../context/UserContext";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import PlaylistModal from "./PlaylistModal";
 
 export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
@@ -21,9 +21,26 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
 
   const navigate = useNavigate();
   const { user } = useUser();
+
   const [loading, setLoading] = useState(false);
   const [published, setPublished] = useState(isPublished);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [isInWatchLater, setIsInWatchLater] = useState(false);
+  useEffect(() => {
+    const fetchWatchLaterStatus = async () => {
+      try {
+        const res = await axiosInstance.get("/v1/video/list");
+        const savedVideos = res.data?.data || [];
+        const found = savedVideos.some((v) => v._id === video._id);
+        setIsInWatchLater(found);
+      } catch (err) {
+        console.error("Failed to fetch watch later list", err);
+      }
+    };
+
+    fetchWatchLaterStatus();
+  }, [video._id]);
+
   const fileInputRef = useRef(null);
 
   const isOwner = (user && user?._id === owner?._id) || user?._id === owner;
@@ -65,6 +82,36 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
     e.preventDefault();
     e.stopPropagation();
     fileInputRef.current.click();
+  };
+
+  const handleAddToWatchLater = async (videoId) => {
+    try {
+      const res = await axiosInstance.post(
+        "/v1/video/add",
+        { videoId },
+        { withCredentials: true }
+      );
+      toast.success(res.data?.message || "Added to Watch Later!");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to add to Watch Later"
+      );
+    }
+  };
+
+  const handleRemoveFromWatchLater = async (videoId) => {
+    try {
+      await axiosInstance.post(
+        "/v1/video/remove",
+        { videoId },
+        { withCredentials: true }
+      );
+      toast.success("Removed from Watch Later!");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to remove from Watch Later"
+      );
+    }
   };
 
   const handleFileChange = async (e) => {
@@ -218,15 +265,35 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
             </>
           )}
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowPlaylistModal(true);
-            }}
-            className="px-3 py-1 text-xs rounded bg-purple-600 hover:bg-purple-700 text-white neon-button transition"
-          >
-            + Playlist
-          </button>
+          {user && (
+            <div className=" flex gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  isInWatchLater
+                    ? handleRemoveFromWatchLater(_id)
+                    : handleAddToWatchLater(_id);
+                  setIsInWatchLater((prev) => !prev);
+                }}
+                className={`mt-3 px-4 py-2 rounded-md text-sm font-semibold ${
+                  isInWatchLater
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-gray-700 hover:bg-gray-600"
+                }`}
+              >
+                {isInWatchLater ? "❌ Watch Later" : "➕ Watch Later"}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPlaylistModal(true);
+                }}
+                className="px-3 py-1 text-xs rounded bg-purple-600 hover:bg-purple-700 text-white neon-button transition"
+              >
+                + Playlist
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
