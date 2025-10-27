@@ -1,5 +1,12 @@
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import Brevo from "@getbrevo/brevo";
+
+// Initialize Brevo client
+const brevo = new Brevo.TransactionalEmailsApi();
+brevo.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
 
 // Generate 6-digit OTP
 export const generateOTP = () => {
@@ -11,33 +18,28 @@ export const hashOTP = (otp) => {
   return crypto.createHash("sha256").update(otp).digest("hex");
 };
 
-// Send OTP via email
+// Send OTP via Brevo
 export const sendOTPEmail = async (email, otp) => {
   try {
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465, // SSL
-      secure: true, // true for 465
-      auth: {
-        user: process.env.EMAIL_USER, // your Gmail address
-        pass: process.env.EMAIL_PASS, // 16-char App Password
-      },
-    });
-
-    // Email options
-    const mailOptions = {
-      from: `"ProjectX" <${process.env.EMAIL_USER}>`,
-      to: email,
+    const sendSmtpEmail = {
+      sender: { name: "ProjectX", email: "abhiv123.av@gmail.com" }, // or your verified sender
+      to: [{ email }],
       subject: "Your OTP Code",
-      text: `Your OTP is: ${otp}. It is valid for 5 minutes.`,
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; padding: 16px;">
+          <h2>🔐 ProjectX OTP Verification</h2>
+          <p>Your OTP is:</p>
+          <h1 style="color: #4F46E5; letter-spacing: 4px;">${otp}</h1>
+          <p>This OTP is valid for <b>5 minutes</b>.</p>
+          <p>If you didn’t request this, please ignore this email.</p>
+        </div>
+      `,
     };
 
-    // Send email
-    await transporter.sendMail(mailOptions);
-    console.log(`OTP sent to ${email}`);
+    const response = await brevo.sendTransacEmail(sendSmtpEmail);
+    console.log(`✅ OTP email sent to ${email}`, response);
   } catch (error) {
-    console.error("Error sending OTP:", error);
-    throw error;
+    console.error("❌ Error sending OTP via Brevo:", error);
+    throw new Error("Failed to send OTP email");
   }
 };
