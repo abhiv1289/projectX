@@ -35,9 +35,9 @@ router.route("/update-post/:postId").patch(updatePost);
 
 router.route("/:postId").delete(deletePost);
 
-router.route("/comment/:postId").post(addComment);
+router.route("/comment/add/:postId").post(addComment);
 
-router.route("/:postId").get(getPostComments);
+router.route("/comment/:postId").get(getPostComments);
 
 router.route("/toggle-like/:postId").post(togglePostLike);
 

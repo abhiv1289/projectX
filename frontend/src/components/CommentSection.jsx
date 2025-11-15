@@ -21,7 +21,7 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
       let url =
         itemType === "video"
           ? `/v1/comment/${itemId}?userId=${user?._id}`
-          : `/v1/post/${itemId}`;
+          : `/v1/comment/post/${itemId}`;
 
       const res = await axiosInstance.get(url, {
         params: { page: pageNum, limit: 10 },
@@ -79,7 +79,7 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
       let url =
         itemType === "video"
           ? `/v1/comment/add/${itemId}`
-          : `/v1/post/comment/${itemId}`;
+          : `/v1/post/comment/add/${itemId}`;
 
       const res = await axiosInstance.post(
         url,

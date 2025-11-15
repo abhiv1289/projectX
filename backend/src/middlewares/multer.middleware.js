@@ -22,3 +22,16 @@ export const upload = multer({
   storage,
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
 });
+
+/*
+Summary
+This entire script creates an upload middleware ready for use in your Express routes. When a file is uploaded, this middleware:
+
+Checks and ensures the ./public/temp folder exists.
+
+Saves the file to that folder (destination: dir).
+
+Renames the file to prevent conflicts and ensure uniqueness using a timestamp and a cleaned-up original name (filename: ...).
+
+Enforces a 20MB file size limit.
+*/
