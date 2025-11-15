@@ -47,6 +47,23 @@ app.use("/api/v1/playlist", playlistRoutes);
 
 app.use("/api/v1/dashboard", dashboardRoutes);
 
+app.get("/", (req, res) => {
+  res.send(`
+    <div style="
+      font-family: Arial;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+      flex-direction:column;
+      background:#f7f7f7;
+    ">
+      <h1>You are on the backend of this project 🚀</h1>
+      <p>This server powers the Vystra app.</p>
+    </div>
+  `);
+});
+
 app.use((err, req, res, next) => {
   console.error(err);
 
