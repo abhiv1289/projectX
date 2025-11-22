@@ -29,7 +29,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="sticky top-0 left-0 right-0 h-16 bg-gray-900/95 backdrop-blur-xl border-b border-cyan-500/20 text-white flex items-center px-4 gap-4 shadow-lg shadow-cyan-500/10 z-50">
+    <div className="sticky top-0 left-0 right-0 h-16 bg-gray-900/95 backdrop-blur-xl border-b border-cyan-500/20 text-white flex items-center px-4 gap-4 shadow-lg shadow-cyan-500/10 z-20">
       {/* Animated gradient line at top */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
 

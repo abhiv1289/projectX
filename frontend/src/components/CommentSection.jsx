@@ -16,6 +16,7 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
   const [editContent, setEditContent] = useState("");
 
   const fetchComments = async (pageNum = 1) => {
+    if (!user) return;
     try {
       setLoading(true);
       let url =
@@ -44,8 +45,9 @@ const CommentSection = ({ itemId, itemOwnerId, itemType }) => {
   };
 
   useEffect(() => {
+    if (!user) return;
     if (itemId) fetchComments(1);
-  }, [itemId]);
+  }, [itemId, user]);
 
   const handleToggleLike = async (commentId) => {
     if (!user) return toast.error("Please log in to like comments");
