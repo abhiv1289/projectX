@@ -23,7 +23,7 @@ const Sidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
 
-  const sidebarClasses = `fixed left-0 top-16 bottom-0 bg-gray-900/95 backdrop-blur-xl text-gray-100 border-r border-cyan-500/20 transition-all duration-300 z-40 overflow-hidden ${
+  const sidebarClasses = `fixed left-0 top-16 bottom-0 bg-gray-900/95 text-gray-100 border-r border-cyan-500/20 transition-all duration-300 z-40 overflow-hidden ${
     isOpen ? "w-64" : "w-0 -translate-x-full"
   }`;
 
@@ -33,7 +33,7 @@ const Sidebar = () => {
       {isOpen && (
         <div
           onClick={() => toggleSidebar(false)}
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 md:hidden"
+          className="fixed inset-0 bg-black/30 z-50 md:hidden"
         ></div>
       )}
 
