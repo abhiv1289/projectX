@@ -20,7 +20,7 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
-  const { isOpen, toggleSidebar } = useSidebar();
+  const { isOpen, closeSidebar } = useSidebar();
   const location = useLocation();
 
   const sidebarClasses = `fixed left-0 top-16 bottom-0 bg-gray-900/95 text-gray-100 border-r border-cyan-500/20 transition-all duration-300 z-40 overflow-hidden ${
@@ -32,9 +32,11 @@ const Sidebar = () => {
       {/* BACKDROP – click outside to close */}
       {isOpen && (
         <div
-          onClick={() => toggleSidebar(false)}
-          className="fixed inset-0 bg-black/30 z-50 md:hidden"
-        ></div>
+          onClick={closeSidebar}
+          className="fixed inset-0 bg-black/30 z-40 md:hidden pointer-events-auto"
+        >
+          <div className="absolute left-0 top-0 h-full w-64 pointer-events-none"></div>
+        </div>
       )}
 
       <aside className={sidebarClasses}>

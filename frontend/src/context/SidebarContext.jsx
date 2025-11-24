@@ -1,19 +1,19 @@
-import React, { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 const SidebarContext = createContext();
 
 export const SidebarProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleSidebar = (value) => {
-    if (typeof value === "boolean") {
-      setIsOpen(value);
+  const toggleSidebar = (forceState) => {
+    if (typeof forceState === "boolean") {
+      setIsOpen(forceState); // ← FIX
     } else {
-      setIsOpen((prev) => !prev);
+      setIsOpen((prev) => !prev); // toggle normally
     }
   };
 
-  const closeSidebar = () => setIsOpen(false);
+  const closeSidebar = () => setIsOpen(false); // convenience function
 
   return (
     <SidebarContext.Provider value={{ isOpen, toggleSidebar, closeSidebar }}>

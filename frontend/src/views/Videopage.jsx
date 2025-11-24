@@ -13,6 +13,7 @@ import {
   FaUserCircle,
 } from "react-icons/fa";
 import { MdSubscriptions, MdOutlineSubscriptions } from "react-icons/md";
+import "../css/loader.css";
 
 const Videopage = () => {
   const { videoId } = useParams();
@@ -149,9 +150,10 @@ const Videopage = () => {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen text-neonBlue text-xl animate-pulse">
-        <FaPlayCircle className="text-4xl mr-3 animate-bounce" /> Loading
-        video...
+      <div className="flex items-center justify-center min-h-screen text-neonBlue text-xl  bg-blue-950">
+        <span className="">
+          <div className=" loader"></div>
+        </span>
       </div>
     );
 
@@ -182,47 +184,58 @@ const Videopage = () => {
           </h1>
 
           {/* Channel Info */}
-          <div className="flex items-center justify-between bg-[#111] rounded-2xl p-4 mb-4 border border-[#00ffff33] hover:border-[#ff00ff66] transition-all duration-300">
+          <div
+            className="flex flex-col sm:flex-row items-center justify-between 
+  bg-[#111] rounded-2xl p-4 mb-5 border border-[#00ffff33] 
+  hover:border-[#ff00ff66] transition-all duration-300 gap-4 sm:gap-0"
+          >
+            {/* Left Section */}
             <div
-              className="flex items-center gap-4 cursor-pointer"
+              className="flex items-center gap-4 cursor-pointer w-full sm:w-auto"
               onClick={() => navigate(`/c/${video.owner.username}`)}
             >
               {video.owner.avatar ? (
                 <img
                   src={video.owner.avatar}
                   alt={video.owner.username}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-[#00ffff88] hover:shadow-[0_0_10px_#00ffff] transition"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover 
+        border-2 border-[#00ffff88] shadow-sm
+        hover:shadow-[0_0_12px_#00ffff] transition"
                 />
               ) : (
-                <FaUserCircle className="text-5xl text-gray-400" />
+                <FaUserCircle className="text-6xl text-gray-400" />
               )}
-              <div>
-                <p className="text-white font-semibold text-lg">
+
+              <div className="flex flex-col">
+                <p className="text-white font-semibold text-lg leading-tight">
                   {video.owner.fullname}
                 </p>
                 <p className="text-gray-400 text-sm">
-                  {video.channelName} • {subscribersCount} subs
+                  {video.channelName} • {subscribersCount} subscribers
                 </p>
               </div>
             </div>
 
+            {/* Subscribe Button */}
             {video && (
               <button
                 onClick={handleToggleSubscription}
-                className={`flex items-center gap-2 px-5 py-2 rounded-full font-semibold transition-all duration-300 ${
-                  !isSubscribed
-                    ? "bg-[#ff00ff44] hover:bg-[#ff00ff88] text-white"
-                    : "bg-[#222] border border-[#00ffff66] hover:bg-[#00ffff22]"
-                }`}
+                className={`w-full sm:w-auto flex items-center justify-center gap-2
+      px-5 py-2.5 rounded-full font-semibold transition-all duration-300 
+      ${
+        !isSubscribed
+          ? "bg-[#ff00ff55] hover:bg-[#ff00ff99] text-white shadow-md"
+          : "bg-[#1a1a1a] border border-[#00ffff66] hover:bg-[#00ffff22] text-white"
+      }`}
               >
                 {user ? (
                   isSubscribed ? (
                     <>
-                      <MdOutlineSubscriptions /> Subscribed
+                      <MdOutlineSubscriptions className="text-xl" /> Subscribed
                     </>
                   ) : (
                     <>
-                      <MdSubscriptions /> Subscribe
+                      <MdSubscriptions className="text-xl" /> Subscribe
                     </>
                   )
                 ) : (

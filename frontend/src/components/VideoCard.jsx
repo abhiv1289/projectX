@@ -184,31 +184,63 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
   };
 
   return (
-    <div className="group overflow-hidden bg-gray-900/50 border border-pink-500 rounded-xl hover:shadow-pink-500 hover:shadow-lg transition-all relative">
+    <div
+      className="group relative overflow-hidden 
+bg-gray-900/60 
+border border-gray-700 
+rounded-xl shadow-md 
+hover:drop-shadow-blue-950
+transition-all duration-300
+
+"
+    >
       {/* Thumbnail */}
       <div className="cursor-pointer" onClick={handleClick}>
-        <div className="relative aspect-video overflow-hidden rounded-lg border border-neon-blue">
+        <div
+          className="relative aspect-video overflow-hidden rounded-xl 
+    border border-gray-700 bg-gray-800/40 
+    shadow-md group-hover:shadow-xl transition-all duration-300"
+        >
           <img
             src={thumbnail}
             alt={title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover 
+      transition-transform duration-500 group-hover:scale-110"
           />
-          <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 rounded text-xs font-semibold text-white">
+
+          {/* Duration Badge */}
+          <div
+            className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm 
+      px-2 py-1 rounded-md text-xs font-semibold text-white shadow-md"
+          >
             {formatDuration(duration)}
           </div>
+
+          {/* Hover Overlay */}
+          <div
+            className="absolute inset-0 bg-black/10 opacity-0 
+      group-hover:opacity-100 transition-opacity duration-300"
+          ></div>
         </div>
       </div>
 
       {/* Info */}
-      <div className="p-3">
+      <div className="p-4">
+        {/* Title */}
         <h3
-          className="font-semibold line-clamp-2 mb-2 text-white group-hover:text-red-500 transition-colors cursor-pointer neon-text"
           onClick={() => navigate(`/video/${_id}`)}
+          className="text-white font-semibold text-[15px] leading-tight line-clamp-2 
+    mb-2 cursor-pointer transition-colors duration-200 
+    group-hover:text-blue-400"
         >
           {title || "Untitled Video"}
         </h3>
+
+        {/* Channel Name */}
         <p className="text-sm text-gray-400 mb-1">{channelName}</p>
-        <div className="flex items-center gap-1 text-xs text-gray-400">
+
+        {/* Meta Info */}
+        <div className="flex items-center gap-1 text-xs text-gray-500">
           <span>{formatViews(views)} views</span>
           <span>•</span>
           <span>
@@ -219,18 +251,19 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
         </div>
 
         {/* Buttons */}
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-2 mt-4">
+          {/* Owner Buttons */}
           {isOwner && (
             <>
               <button
                 onClick={triggerFileUpload}
                 disabled={loading}
-                className={`px-3 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 neon-button transition ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className="px-3 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 
+          text-white transition shadow-sm disabled:opacity-50"
               >
                 Update Thumbnail
               </button>
+
               <input
                 type="file"
                 accept="image/*"
@@ -242,9 +275,8 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
               <button
                 onClick={handleDelete}
                 disabled={loading}
-                className={`px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 neon-button transition ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className="px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 
+          text-white transition shadow-sm disabled:opacity-50"
               >
                 Delete
               </button>
@@ -252,12 +284,10 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
               <button
                 onClick={handleTogglePublish}
                 disabled={loading}
-                className={`px-3 py-1 text-xs rounded ${
+                className={`px-3 py-1 text-xs rounded text-white transition shadow-sm disabled:opacity-50 ${
                   published
                     ? "bg-green-600 hover:bg-green-700"
                     : "bg-yellow-600 hover:bg-yellow-700"
-                } neon-button transition ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 {published ? "Unpublish" : "Publish"}
@@ -265,8 +295,10 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
             </>
           )}
 
+          {/* User Buttons */}
           {user && (
-            <div className=" flex gap-1">
+            <div className="flex gap-2 mt-2 w-full">
+              {/* Watch Later */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -275,20 +307,24 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
                     : handleAddToWatchLater(_id);
                   setIsInWatchLater((prev) => !prev);
                 }}
-                className={`mt-3 px-4 py-2 rounded-md text-sm font-semibold ${
-                  isInWatchLater
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-gray-700 hover:bg-gray-600"
-                }`}
+                className={`flex-1 py-2 rounded-md text-xs font-semibold transition 
+          shadow-sm ${
+            isInWatchLater
+              ? "bg-red-600 hover:bg-red-700 text-white"
+              : "bg-gray-700 hover:bg-gray-600 text-white"
+          }`}
               >
-                {isInWatchLater ? "❌ Watch Later" : "➕ Watch Later"}
+                {isInWatchLater ? "Remove" : "Watch Later"}
               </button>
+
+              {/* Playlist */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowPlaylistModal(true);
                 }}
-                className="px-3 py-1 text-xs rounded bg-purple-600 hover:bg-purple-700 text-white neon-button transition"
+                className="py-2 px-3 rounded-md bg-purple-600 hover:bg-purple-700 
+          text-xs text-white transition shadow-sm"
               >
                 + Playlist
               </button>
