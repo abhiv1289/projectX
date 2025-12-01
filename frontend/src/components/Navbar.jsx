@@ -7,7 +7,8 @@ import { useUser } from "../context/UserContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import Vystra from "../assets/Vystra.png";
-
+import { FaUser } from "react-icons/fa";
+import PopupMenu from "./ui/PopupMenu";
 const Navbar = () => {
   const { toggleSidebar } = useSidebar();
   const { user, logoutUser } = useUser();
@@ -52,10 +53,10 @@ const Navbar = () => {
             <img
               src={Vystra}
               alt="vystra"
-              className="relative h-7 w-7 text-cyan-400 group-hover:scale-110 transition-transform duration-200"
+              className="relative h-9 w-9 text-cyan-400 group-hover:scale-110 transition-transform duration-200"
             />
           </div>
-          <span className="font-bold text-lg hidden sm:inline bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:animate-pulse">
+          <span className="font-bold text-3xl hidden sm:inline bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:animate-pulse">
             Vystra
           </span>
         </Link>
@@ -71,7 +72,7 @@ const Navbar = () => {
             }`}
           ></div>
 
-          <div className="relative">
+          <div className="relative w-full px-1 sm:px-0">
             <CiSearch
               className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200 ${
                 isSearchFocused ? "text-cyan-400" : "text-gray-400"
@@ -84,7 +85,8 @@ const Navbar = () => {
               onChange={(e) => setSearchInput(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
-              className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200 backdrop-blur-sm"
+              className="w-full pl-7 py-2 rounded-lg text-sm sm:text-base
+    "
             />
           </div>
         </form>
@@ -94,12 +96,6 @@ const Navbar = () => {
       {user ? (
         <div className="flex items-center gap-2 relative z-10">
           {/* Notification Bell */}
-          <button className="relative p-2 rounded-lg hover:bg-cyan-500/10 transition-all duration-200 hover:scale-110 active:scale-95 group overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <FaRegBell className="h-5 w-5 relative z-10 group-hover:text-cyan-400 transition-colors" />
-            {/* Notification badge */}
-            <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full border border-gray-900 animate-pulse"></span>
-          </button>
 
           {/* Profile Link */}
           <Link
@@ -126,18 +122,18 @@ const Navbar = () => {
         </div>
       ) : (
         <div className="flex items-center gap-2 relative z-10">
-          {/* Login Button */}
-          <Link
+          <PopupMenu />
+
+          {/* <Link
             to="/login"
             className="relative px-4 py-2 rounded-lg font-medium overflow-hidden group transition-all duration-200 hover:scale-105 active:scale-95"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-300"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <span className="relative z-10">Login</span>
-          </Link>
-
+          </Link> */}
           {/* Signup Button */}
-          <Link
+          {/* <Link
             to="/signup"
             className="relative px-4 py-2 rounded-lg font-medium border border-cyan-500/30 overflow-hidden group transition-all duration-200 hover:scale-105 active:scale-95"
           >
@@ -146,7 +142,7 @@ const Navbar = () => {
             <span className="relative z-10 group-hover:text-cyan-400 transition-colors">
               Signup
             </span>
-          </Link>
+          </Link> */}
         </div>
       )}
 

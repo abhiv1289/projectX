@@ -132,7 +132,7 @@ const Sidebar = () => {
           <div className="pt-4 px-4">
             <p className="text-xs text-gray-500 text-center">
               <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-semibold">
-                VideoHub
+                Vystra
               </span>
             </p>
             <p className="text-xs text-gray-600 text-center mt-1">

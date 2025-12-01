@@ -64,7 +64,7 @@ const Home = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2">
-            Recommended Videos
+            Videos
           </h1>
           <div className="h-[2px] w-24 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full"></div>
         </div>
