@@ -20,7 +20,9 @@ const createPost = asyncHandler(async (req, res) => {
     filesPaths.map((path) => uploadOnCloudinary(path))
   );
 
-  const validFiles = uploadedFiles.filter(Boolean).map((file) => file.url);
+  const validFiles = uploadedFiles
+    .filter(Boolean)
+    .map((file) => file.secure_url);
 
   const post = await Post.create({
     content,

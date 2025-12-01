@@ -57,8 +57,8 @@ const registerUser = asyncHandler(async (req, res) => {
   // Handle avatar
   if (avatarLocalFilePath) {
     const uploadedAvatar = await uploadOnCloudinary(avatarLocalFilePath);
-    avatarUrl = uploadedAvatar?.url;
-  } else if (avatar && avatar.startsWith("http")) {
+    avatarUrl = uploadedAvatar?.secure_url;
+  } else if (avatar && avatar.startsWith("https")) {
     avatarUrl = avatar;
   } else {
     throw new ApiError(400, "Avatar is required");
@@ -67,8 +67,8 @@ const registerUser = asyncHandler(async (req, res) => {
   // Handle cover image (optional)
   if (coverImageLocalFilePath) {
     const uploadedCover = await uploadOnCloudinary(coverImageLocalFilePath);
-    coverImageUrl = uploadedCover?.url || "";
-  } else if (req.body.coverImage && req.body.coverImage.startsWith("http")) {
+    coverImageUrl = uploadedCover?.secure_url || "";
+  } else if (req.body.coverImage && req.body.coverImage.startsWith("https")) {
     coverImageUrl = req.body.coverImage;
   }
 
@@ -349,13 +349,13 @@ const updateAvatar = asyncHandler(async (req, res) => {
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
 
-  if (!avatar.url) {
+  if (!avatar.secure_url) {
     throw new ApiError(400, "Error uploading avatar on cloudinary");
   }
 
   const user = await User.findByIdAndUpdate(req.user?._id, {
     $set: {
-      avatar: avatar.url,
+      avatar: avatar.secure_url,
     },
   }).select("-password");
 
@@ -373,13 +373,13 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
   const CoverImage = await uploadOnCloudinary(CoverImageLocalPath);
 
-  if (!CoverImage.url) {
+  if (!CoverImage.secure_url) {
     throw new ApiError(400, "Error uploading CoverImage on cloudinary");
   }
 
   const user = await User.findByIdAndUpdate(req.user?._id, {
     $set: {
-      coverImage: CoverImage.url,
+      coverImage: CoverImage.secure_url,
     },
   }).select("-password");
 

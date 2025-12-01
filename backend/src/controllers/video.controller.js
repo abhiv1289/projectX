@@ -30,13 +30,13 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
   const UploadedThumbnail = await uploadOnCloudinary(thumbnailFilePath);
 
-  if (!Uploadedvideo.url || !UploadedThumbnail.url) {
+  if (!Uploadedvideo.secure_url || !UploadedThumbnail.secure_url) {
     throw new ApiError(400, "Error uploading the video!");
   }
 
   const video = await Video.create({
-    videoFile: Uploadedvideo.url,
-    thumbnail: UploadedThumbnail.url,
+    videoFile: Uploadedvideo.secure_url,
+    thumbnail: UploadedThumbnail.secure_url,
     title,
     description,
     duration: Uploadedvideo.duration,
@@ -96,7 +96,7 @@ const updateVideo = asyncHandler(async (req, res) => {
     videoId,
     {
       $set: {
-        thumbnail: thumbnail.url,
+        thumbnail: thumbnail.secure_url,
       },
     },
     {
