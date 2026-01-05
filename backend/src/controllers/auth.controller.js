@@ -367,7 +367,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
     throw new ApiError(400, "CoverImage is missing!");
   }
 
-  const CoverImage = await uploadOnCloudinary(CoverImageLocalPath);
+  const CoverImage = await uploadOnCloudinary(coverImageFile);
 
   if (!CoverImage.secure_url) {
     throw new ApiError(400, "Error uploading CoverImage on cloudinary");
