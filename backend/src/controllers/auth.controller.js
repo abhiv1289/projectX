@@ -51,12 +51,9 @@ const registerUser = asyncHandler(async (req, res) => {
   let avatarUrl = "";
   let coverImageUrl = "";
 
-  const avatarLocalFilePath = req.files?.avatar?.[0]?.path;
-  const coverImageLocalFilePath = req.files?.coverImage?.[0]?.path;
-
   // Handle avatar
-  if (avatarLocalFilePath) {
-    const uploadedAvatar = await uploadOnCloudinary(avatarLocalFilePath);
+  if (req.files?.avatar?.[0]?.buffer) {
+    const uploadedAvatar = await uploadOnCloudinary(req.files.avatar[0].buffer);
     avatarUrl = uploadedAvatar?.secure_url;
   } else if (avatar && avatar.startsWith("https")) {
     avatarUrl = avatar;
@@ -65,8 +62,10 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // Handle cover image (optional)
-  if (coverImageLocalFilePath) {
-    const uploadedCover = await uploadOnCloudinary(coverImageLocalFilePath);
+  if (req.files?.coverImage?.[0]?.buffer) {
+    const uploadedCover = await uploadOnCloudinary(
+      req.files.coverImage[0].buffer
+    );
     coverImageUrl = uploadedCover?.secure_url || "";
   } else if (req.body.coverImage && req.body.coverImage.startsWith("https")) {
     coverImageUrl = req.body.coverImage;
@@ -94,8 +93,6 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(200, createdUser, "User registered successfully!"));
 });
-
-// controller/auth.controller.js
 
 const auth0LoginUser = asyncHandler(async (req, res) => {
   const { user } = req.body;
@@ -341,14 +338,13 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
+  const avatarFile = req.file?.avatar?.[0]?.buffer;
 
-  if (!avatarLocalPath) {
+  if (!avatarFile) {
     throw new ApiError(400, "Avatar is missing!");
   }
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-
+  const avatar = await uploadOnCloudinary(avatarFile);
   if (!avatar.secure_url) {
     throw new ApiError(400, "Error uploading avatar on cloudinary");
   }
@@ -365,9 +361,9 @@ const updateAvatar = asyncHandler(async (req, res) => {
 });
 
 const updateCoverImage = asyncHandler(async (req, res) => {
-  const CoverImageLocalPath = req.file?.path;
+  const coverImageFile = req.file?.coverImage?.[0]?.buffer;
 
-  if (!CoverImageLocalPath) {
+  if (!coverImageFile) {
     throw new ApiError(400, "CoverImage is missing!");
   }
 
