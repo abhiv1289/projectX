@@ -8,7 +8,7 @@ import { OTP } from "../models/otp.model.js";
 import { generateOTP, hashOTP, sendOTPEmail } from "../utils/otp.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import connectDB from "./config/database.js";
+import connectDB from "../config/database.js";
 const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
