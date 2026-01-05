@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -7,28 +6,24 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_SECRET_KEY,
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
-  try {
-    if (!localFilePath || !fs.existsSync(localFilePath)) {
-      console.error("❌ File not found:", localFilePath);
-      return null;
+const uploadOnCloudinary = async (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    if (!fileBuffer) {
+      return reject("No file buffer provided");
     }
 
-    const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto",
-    });
-
-    console.log("✅ File uploaded successfully to Cloudinary");
-
-    // Clean up temporary file
-    fs.unlinkSync(localFilePath);
-
-    return response;
-  } catch (error) {
-    console.error("🚨 Cloudinary upload failed:", error.message);
-    if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
-    return null;
-  }
+    cloudinary.uploader
+      .upload_stream({ resource_type: "auto" }, (error, result) => {
+        if (error) {
+          console.error("Cloudinary upload failed! : ", error.message);
+          reject(error);
+        } else {
+          console.log("✅ File uploaded successfully to Cloudinary");
+          resolve(result);
+        }
+      })
+      .end(fileBuffer);
+  });
 };
 
 export { uploadOnCloudinary };
