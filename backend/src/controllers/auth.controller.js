@@ -8,7 +8,7 @@ import { OTP } from "../models/otp.model.js";
 import { generateOTP, hashOTP, sendOTPEmail } from "../utils/otp.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-
+import connectDB from "./config/database.js";
 const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -540,11 +540,23 @@ const sendOtp = async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Email is required" });
 
+  await connectDB();
+
   const otp = generateOTP();
   const otpHash = hashOTP(otp);
 
-  await OTP.create({ email, otpHash });
-  await sendOTPEmail(email, otp);
+  await OTP.findOneAndUpdate(
+    { email },
+    { otpHash, createdAt: Date.now() },
+    { upsert: true, new: true }
+  );
+
+  try {
+    await sendOTPEmail(email, otp);
+  } catch (error) {
+    await OTP.deleteOne({ email });
+    return res.status(500).json({ message: "Error sending OTP email" });
+  }
 
   res.json({ message: "OTP sent successfully" });
 };
@@ -554,6 +566,8 @@ const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
   if (!email || !otp)
     return res.status(400).json({ message: "Email and OTP required" });
+
+  await connectDB();
 
   const otpRecord = await OTP.findOne({ email });
   if (!otpRecord)
