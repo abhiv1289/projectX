@@ -232,6 +232,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const getTrendingVideos = asyncHandler(async (req, res) => {
+  await connectDB();
+
   const trendingVideos = await Video.find({ isPublished: true })
     .sort({ views: -1 })
     .limit(10);
