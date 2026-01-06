@@ -25,8 +25,12 @@ app.use(
   cors({
     origin: ["https://vystra.netlify.app", "http://localhost:5173"],
     credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.options("*", cors());
 
 app.use(cookieParser());
 

@@ -132,7 +132,7 @@ const auth0LoginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.MODE === "production",
-    sameSite: process.env.MODE === "production" ? "none" : "lax",
+    sameSite: "none",
   };
 
   return res
@@ -187,7 +187,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.MODE === "production",
-    sameSite: process.env.MODE === "production" ? "none" : "lax",
+    sameSite: "none",
   };
 
   return res
@@ -223,7 +223,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.MODE === "production",
-    sameSite: process.env.MODE === "production" ? "none" : "lax",
+    sameSite: process.env.MODE === "none",
   };
 
   return res
@@ -266,7 +266,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.MODE === "production",
-    sameSite: process.env.MODE === "production" ? "none" : "lax",
+    sameSite: process.env.MODE === "none",
   };
 
   return res
