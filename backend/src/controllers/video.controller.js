@@ -7,12 +7,16 @@ import mongoose from "mongoose";
 import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import User from "../models/user.model.js";
+import connectDB from "../config/database.js";
 
 const publishAVideo = asyncHandler(async (req, res) => {
-  const { title, description ,videoUrl,thumbnailUrl,duration } = req.body;
+  const { title, description, videoUrl, thumbnailUrl, duration } = req.body;
 
   if (!title || !description || !videoUrl || !thumbnailUrl || !duration) {
-    throw new ApiError(400, "title, description, videoUrl, thumbnailUrl, and duration are required!");
+    throw new ApiError(
+      400,
+      "title, description, videoUrl, thumbnailUrl, and duration are required!"
+    );
   }
 
   const video = await Video.create({
@@ -165,6 +169,8 @@ const getVideoById = asyncHandler(async (req, res) => {
 });
 
 const getAllVideos = asyncHandler(async (req, res) => {
+  await connectDB();
+
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
   const pageNumber = Number(page) || 1;

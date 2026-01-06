@@ -69,14 +69,12 @@ app.get("/", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err);
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
 
-  const statusCode = err.statusCode || 500;
-  const message = err.message || "Something went wrong";
-
-  res.status(statusCode).json({
-    status: "error",
-    message,
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
   });
 });
 
