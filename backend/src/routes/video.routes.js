@@ -52,7 +52,7 @@ router.route("/comment/:videoId").post(verifyJWT, addComment);
 
 router.route("/list").get(verifyJWT, getWatchLaterVideos);
 router.route("/trending").get(getTrendingVideos);
-router.route("/:videoId").get(getVideoComments);
+// router.route("/comments/:videoId").get(getVideoComments);
 
 router.route("/toggle-like/:videoId").post(verifyJWT, toggleVideoLike);
 
