@@ -3,8 +3,8 @@ import connectDB from "./config/database.js";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
-//importing routes
+import { isProduction } from "./config/env.js";
+// //importing routes
 import authRoutes from "./routes/auth.routes.js";
 import videoRoutes from "./routes/video.routes.js";
 import subscriptionRoutes from "./routes/subscription.route.js";
@@ -18,20 +18,19 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT;
 
-app.use(express.json({ limit: "16kb" }));
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+const allowedOrigins = isProduction
+  ? ["https://vystra.netlify.app"]
+  : ["http://localhost:5173"];
 
 app.use(
   cors({
-    origin: ["https://vystra.netlify.app", "http://localhost:5173"],
+    origin: allowedOrigins,
     credentials: true,
-    methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.options("*", cors());
-
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 
 //handling routes routes
@@ -80,13 +79,3 @@ const startServer = async () => {
   }
 };
 startServer();
-
-app.use((err, req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Credentials", "true");
-
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
-});

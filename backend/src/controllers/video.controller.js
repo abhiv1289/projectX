@@ -7,7 +7,6 @@ import mongoose from "mongoose";
 import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import User from "../models/user.model.js";
-import connectDB from "../config/database.js";
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description, videoUrl, thumbnailUrl, duration } = req.body;
@@ -169,8 +168,6 @@ const getVideoById = asyncHandler(async (req, res) => {
 });
 
 const getAllVideos = asyncHandler(async (req, res) => {
-  await connectDB();
-
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
   const pageNumber = Number(page) || 1;
@@ -232,8 +229,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const getTrendingVideos = asyncHandler(async (req, res) => {
-  await connectDB();
-
   const trendingVideos = await Video.find({ isPublished: true })
     .sort({ views: -1 })
     .limit(10);

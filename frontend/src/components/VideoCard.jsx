@@ -29,7 +29,9 @@ export const VideoCard = ({ video, onVideoDeleted, onVideoUpdated }) => {
   useEffect(() => {
     const fetchWatchLaterStatus = async () => {
       try {
-        const res = await axiosInstance.get("/v1/video/list");
+        const res = await axiosInstance.get("/v1/video/list", {
+          withCredentials: true,
+        });
         const savedVideos = res.data?.data || [];
         const found = savedVideos.some((v) => v._id === video._id);
         setIsInWatchLater(found);

@@ -1,8 +1,8 @@
-import express, { Router } from "express";
+import { Router } from "express";
 import {
+  registerUser,
   loginUser,
   logoutUser,
-  registerUser,
   refreshAccessToken,
   changeCurrentPassword,
   getCurrentUser,
@@ -21,49 +21,44 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/register").post(
+/* Auth */
+router.post(
+  "/register",
   upload.fields([
-    {
-      name: "avatar",
-      maxCount: 1,
-    },
-    {
-      name: "coverImage",
-      maxCount: 1,
-    },
+    { name: "avatar", maxCount: 1 },
+    { name: "coverImage", maxCount: 1 },
   ]),
   registerUser
 );
-
-router.route("/login").post(loginUser);
-
-router.route("/logout").post(verifyJWT, logoutUser);
-
-router.route("/refresh-token").post(refreshAccessToken);
-
-router.route("/change-password").post(verifyJWT, changeCurrentPassword);
-
-router.route("/get-user").get(verifyJWT, getCurrentUser);
-
-router.route("/update-details").patch(verifyJWT, updateAccountDetails);
-
-router
-  .route("/update-avatar")
-  .patch(verifyJWT, upload.single("avatar"), updateAvatar);
-
-router
-  .route("/update-coverImage")
-  .patch(verifyJWT, upload.single("coverImage"), updateCoverImage);
-
-router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
-
-router.route("/history").get(verifyJWT, getWatchHistory);
-
-router.route("/add-to-history").post(verifyJWT, addToWatchHistory);
-
-// routes/auth.routes.js
+router.post("/login", loginUser);
 router.post("/auth0-login", auth0LoginUser);
+router.post("/logout", verifyJWT, logoutUser);
+router.post("/refresh-token", refreshAccessToken);
 
+/* Profile */
+router.get("/me", verifyJWT, getCurrentUser);
+router.patch("/update-details", verifyJWT, updateAccountDetails);
+router.patch(
+  "/update-avatar",
+  verifyJWT,
+  upload.single("avatar"),
+  updateAvatar
+);
+router.patch(
+  "/update-cover-image",
+  verifyJWT,
+  upload.single("coverImage"),
+  updateCoverImage
+);
+
+/* User data */
+router.get("/c/:username", verifyJWT, getUserChannelProfile);
+router.get("/history", verifyJWT, getWatchHistory);
+router.post("/add-to-history", verifyJWT, addToWatchHistory);
+router.get("/get-user", verifyJWT, getCurrentUser);
+
+/* OTP */
 router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
+
 export default router;

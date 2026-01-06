@@ -1,15 +1,31 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import User from "../models/user.model.js";
-import { upload } from "../middlewares/multer.middleware.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { OTP } from "../models/otp.model.js";
-import { generateOTP, hashOTP, sendOTPEmail } from "../utils/otp.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import connectDB from "../config/database.js";
-const generateAccessAndRefreshToken = async (userId) => {
+import User from "../models/user.model.js";
+import { OTP } from "../models/otp.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { generateOTP, hashOTP, sendOTPEmail } from "../utils/otp.js";
+import { isProduction } from "../config/env.js";
+
+export const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction, // true on Vercel, false on localhost
+  sameSite: isProduction ? "none" : "lax",
+};
+
+const generateTokens = async (user) => {
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
+
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  return { accessToken, refreshToken };
+};
+
+export const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
 
@@ -30,71 +46,42 @@ const generateAccessAndRefreshToken = async (userId) => {
   }
 };
 
-const registerUser = asyncHandler(async (req, res) => {
+export const registerUser = asyncHandler(async (req, res) => {
   const { fullname, username, email, password, avatar } = req.body;
 
-  // ✅ Validate required fields (password might be optional for OAuth later)
-  if ([fullname, username, email].some((field) => field?.trim() === "")) {
-    throw new ApiError(400, "Fullname, username, and email are required");
+  if (!fullname || !username || !email) {
+    throw new ApiError(400, "Fullname, username and email are required");
   }
 
-  // ✅ Check if user already exists
-  const existingUser = await User.findOne({
-    $or: [{ username }, { email }],
-  });
+  const exists = await User.findOne({ $or: [{ email }, { username }] });
+  if (exists) throw new ApiError(400, "User already exists");
 
-  if (existingUser) {
-    throw new ApiError(400, "User with username or email already exists!");
-  }
-
-  // ✅ Handle avatar and cover image (file or URL)
-  let avatarUrl = "";
-  let coverImageUrl = "";
-
-  // Handle avatar
+  let avatarUrl = avatar;
   if (req.files?.avatar?.[0]?.buffer) {
-    const uploadedAvatar = await uploadOnCloudinary(req.files.avatar[0].buffer);
-    avatarUrl = uploadedAvatar?.secure_url;
-  } else if (avatar && avatar.startsWith("https")) {
-    avatarUrl = avatar;
-  } else {
-    throw new ApiError(400, "Avatar is required");
+    const uploaded = await uploadOnCloudinary(req.files.avatar[0].buffer);
+    avatarUrl = uploaded.secure_url;
   }
 
-  // Handle cover image (optional)
-  if (req.files?.coverImage?.[0]?.buffer) {
-    const uploadedCover = await uploadOnCloudinary(
-      req.files.coverImage[0].buffer
-    );
-    coverImageUrl = uploadedCover?.secure_url || "";
-  } else if (req.body.coverImage && req.body.coverImage.startsWith("https")) {
-    coverImageUrl = req.body.coverImage;
-  }
+  if (!avatarUrl) throw new ApiError(400, "Avatar is required");
 
-  // ✅ Create user
   const user = await User.create({
     fullname,
     username: username.toLowerCase(),
     email,
-    password: password || "OAuthUser@123", // fallback if OAuth login (so schema doesn’t fail)
+    password: password || "OAuthUser@123",
     avatar: avatarUrl,
-    coverImage: coverImageUrl,
   });
 
-  const createdUser = await User.findById(user._id).select(
+  const safeUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
 
-  if (!createdUser) {
-    throw new ApiError(500, "Something went wrong while registering the user");
-  }
-
-  return res
+  res
     .status(201)
-    .json(new ApiResponse(200, createdUser, "User registered successfully!"));
+    .json(new ApiResponse(201, safeUser, "User registered successfully"));
 });
 
-const auth0LoginUser = asyncHandler(async (req, res) => {
+export const auth0LoginUser = asyncHandler(async (req, res) => {
   const { user } = req.body;
 
   if (!user || !user.email) {
@@ -129,16 +116,10 @@ const auth0LoginUser = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
 
-  const options = {
-    httpOnly: true,
-    secure: process.env.MODE === "production",
-    sameSite: "none",
-  };
-
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
       new ApiResponse(
         200,
@@ -148,144 +129,59 @@ const auth0LoginUser = asyncHandler(async (req, res) => {
     );
 });
 
-const loginUser = asyncHandler(async (req, res) => {
+export const loginUser = asyncHandler(async (req, res) => {
   const { identifier, password } = req.body;
 
-  if (!identifier) {
-    throw new ApiError(400, "username or email is required!");
-  }
-
   const user = await User.findOne({
-    $or: [{ username: identifier }, { email: identifier }],
+    $or: [{ email: identifier }, { username: identifier }],
   });
 
-  if (!user) {
-    throw new ApiError(400, "user does not exists!");
+  if (!user || !(await user.isPasswordCorrect(password))) {
+    throw new ApiError(401, "Invalid credentials");
   }
 
-  const isPasswordValid = await user.isPasswordCorrect(password);
+  const { accessToken, refreshToken } = await generateTokens(user);
 
-  if (!isPasswordValid) {
-    throw new ApiError(400, "Invalid credentials");
-  }
-
-  const { refreshToken, accessToken } = await generateAccessAndRefreshToken(
-    user._id
-  );
-
-  const loggedInUser = await User.findOne(user._id).select(
+  const safeUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
 
-  if (!loggedInUser) {
-    throw new ApiError(
-      500,
-      "Error in generating the access and refresh tokens."
-    );
-  }
-
-  const options = {
-    httpOnly: true,
-    secure: process.env.MODE === "production",
-    sameSite: "none",
-  };
-
-  return res
+  res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          user: loggedInUser,
-          accessToken,
-          refreshToken,
-        },
-        "User LoggedIn successfully!"
-      )
-    );
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(new ApiResponse(200, { user: safeUser }, "Login successful"));
 });
 
-const logoutUser = asyncHandler(async (req, res) => {
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $unset: {
-        refreshToken: 1,
-      },
-    },
-    {
-      new: true,
-    }
-  );
+export const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
 
-  const options = {
-    httpOnly: true,
-    secure: process.env.MODE === "production",
-    sameSite: process.env.MODE === "none",
-  };
-
-  return res
-    .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(new ApiResponse(200, {}, "User logged out successfully!"));
+  res
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
+    .json(new ApiResponse(200, {}, "Logged out successfully"));
 });
 
-const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken =
-    req.cookies.refreshToken || req.body.refreshToken;
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+  const token = req.cookies.refreshToken;
+  if (!token) throw new ApiError(401, "Unauthorized");
 
-  if (!incomingRefreshToken) {
-    throw new ApiError(400, "unauthorized request");
-  }
+  const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+  const user = await User.findById(decoded._id);
 
-  const decodedToken = jwt.verify(
-    incomingRefreshToken,
-    process.env.REFRESH_TOKEN_SECRET
-  );
-
-  if (!decodedToken) {
-    throw new ApiError(400, "Invalid Refresh Token");
-  }
-
-  const user = await User.findById(decodedToken?._id);
-
-  if (!user) {
+  if (!user || user.refreshToken !== token) {
     throw new ApiError(401, "Invalid refresh token");
   }
 
-  if (incomingRefreshToken !== user?.refreshToken) {
-    throw new ApiError(401, "Refresh token is expired or used");
-  }
+  const { accessToken, refreshToken } = await generateTokens(user);
 
-  const { accessToken, refreshToken: newRefreshToken } =
-    await generateAccessAndRefreshToken(user._id);
-
-  const options = {
-    httpOnly: true,
-    secure: process.env.MODE === "production",
-    sameSite: process.env.MODE === "none",
-  };
-
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", newRefreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          accessToken,
-          refreshToken: newRefreshToken,
-        },
-        "Access Token refreshed successfully!"
-      )
-    );
+  res
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(new ApiResponse(200, { accessToken }, "Token refreshed"));
 });
 
-const changeCurrentPassword = asyncHandler(async (req, res) => {
+export const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
   const user = await User.findById(req.user?._id);
@@ -309,11 +205,11 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
-const getCurrentUser = asyncHandler(async (req, res) => {
+export const getCurrentUser = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, req.user, "current User"));
 });
 
-const updateAccountDetails = asyncHandler(async (req, res) => {
+export const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullname } = req.body;
 
   if (!fullname) {
@@ -337,7 +233,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Details updated successfully!"));
 });
 
-const updateAvatar = asyncHandler(async (req, res) => {
+export const updateAvatar = asyncHandler(async (req, res) => {
   const avatarFile = req.file?.buffer;
 
   if (!avatarFile) {
@@ -360,7 +256,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Avatar updated successfully!"));
 });
 
-const updateCoverImage = asyncHandler(async (req, res) => {
+export const updateCoverImage = asyncHandler(async (req, res) => {
   const coverImageFile = req.file?.buffer;
 
   if (!coverImageFile) {
@@ -384,7 +280,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "CoverImage updated successfully!"));
 });
 
-const getUserChannelProfile = asyncHandler(async (req, res) => {
+export const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
   if (!username?.trim()) {
@@ -456,7 +352,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     );
 });
 
-const getWatchHistory = asyncHandler(async (req, res) => {
+export const getWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {
       $match: {
@@ -510,7 +406,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     );
 });
 
-const addToWatchHistory = asyncHandler(async (req, res) => {
+export const addToWatchHistory = asyncHandler(async (req, res) => {
   const userId = req.user._id; // logged-in user
   const videoId = req.body.videoId; // video being watched
 
@@ -535,12 +431,9 @@ const addToWatchHistory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Video added to watch history"));
 });
 
-// Send OTP
-const sendOtp = async (req, res) => {
+export const sendOtp = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).json({ message: "Email is required" });
-
-  await connectDB();
+  if (!email) throw new ApiError(400, "Email required");
 
   const otp = generateOTP();
   const otpHash = hashOTP(otp);
@@ -548,53 +441,23 @@ const sendOtp = async (req, res) => {
   await OTP.findOneAndUpdate(
     { email },
     { otpHash, createdAt: Date.now() },
-    { upsert: true, new: true }
+    { upsert: true }
   );
 
-  try {
-    await sendOTPEmail(email, otp);
-  } catch (error) {
-    await OTP.deleteOne({ email });
-    return res.status(500).json({ message: "Error sending OTP email" });
+  await sendOTPEmail(email, otp);
+
+  res.json(new ApiResponse(200, {}, "OTP sent"));
+});
+
+export const verifyOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  const record = await OTP.findOne({ email });
+  if (!record || record.otpHash !== hashOTP(otp)) {
+    throw new ApiError(400, "Invalid or expired OTP");
   }
 
-  res.json({ message: "OTP sent successfully" });
-};
+  await OTP.deleteOne({ email });
 
-// Verify OTP
-const verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
-  if (!email || !otp)
-    return res.status(400).json({ message: "Email and OTP required" });
-
-  await connectDB();
-
-  const otpRecord = await OTP.findOne({ email });
-  if (!otpRecord)
-    return res.status(400).json({ message: "OTP expired or invalid" });
-
-  if (hashOTP(otp) !== otpRecord.otpHash)
-    return res.status(400).json({ message: "Invalid OTP" });
-
-  await OTP.deleteOne({ _id: otpRecord._id });
-
-  res.json({ message: "OTP verified successfully" });
-};
-
-export {
-  registerUser,
-  loginUser,
-  logoutUser,
-  refreshAccessToken,
-  changeCurrentPassword,
-  getCurrentUser,
-  updateAccountDetails,
-  updateAvatar,
-  updateCoverImage,
-  getUserChannelProfile,
-  getWatchHistory,
-  auth0LoginUser,
-  sendOtp,
-  verifyOtp,
-  addToWatchHistory,
-};
+  res.json(new ApiResponse(200, {}, "OTP verified"));
+});
