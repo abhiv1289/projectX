@@ -171,6 +171,25 @@ const Profilepage = () => {
     }
   };
 
+  const uploadToCloudinary = async (file, resourceType = "auto") => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET);
+    formData.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${
+        import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+      }/${resourceType}/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    return res.json();
+  };
+
   const handleVideoUpload = async (e) => {
     e.preventDefault();
     if (!videoFile || !thumbnail || !title.trim() || !description.trim()) {
@@ -179,19 +198,35 @@ const Profilepage = () => {
     }
     try {
       setLoading(true);
-      const formData = new FormData();
-      formData.append("videoFile", videoFile);
-      formData.append("thumbnail", thumbnail);
-      formData.append("title", title);
-      formData.append("description", description);
+
+      const videoUpload = await uploadToCloudinary(videoFile, "video");
+      if (!videoUpload.secure_url) {
+        toast.error("Error uploading video to cloudinary");
+        setLoading(false);
+        return;
+      }
+
+      const thumbnailUpload = await uploadToCloudinary(thumbnail, "image");
+      if (!thumbnailUpload.secure_url) {
+        toast.error("Error uploading thumbnail to cloudinary");
+        setLoading(false);
+        return;
+      }
+
       const res = await axiosInstance.post(
         "/v1/video/publish-video",
-        formData,
+        {
+          title,
+          description,
+          videoUrl: videoUpload.secure_url,
+          thumbnailUrl: thumbnailUpload.secure_url,
+          duration: Math.round(videoUpload.duration || 0),
+        },
         {
           withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
         }
       );
+
       toast.success(res.data?.message || "Video uploaded successfully!");
       setVideoFile(null);
       setThumbnail(null);

@@ -9,37 +9,18 @@ import Like from "../models/like.model.js";
 import User from "../models/user.model.js";
 
 const publishAVideo = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description ,videoUrl,thumbnailUrl,duration } = req.body;
 
-  if (!title || !description) {
-    throw new ApiError(400, "title and description are required!");
-  }
-
-  const videoLocalFilePath = req.files?.videoFile?.[0]?.path;
-  const thumbnailFilePath = req.files?.thumbnail?.[0]?.path;
-
-  if (!thumbnailFilePath) {
-    throw new ApiError(400, "Please upload a thumbnail!");
-  }
-
-  if (!videoLocalFilePath) {
-    throw new ApiError(400, "Please upload a video!");
-  }
-
-  const Uploadedvideo = await uploadOnCloudinary(videoLocalFilePath);
-
-  const UploadedThumbnail = await uploadOnCloudinary(thumbnailFilePath);
-
-  if (!Uploadedvideo.secure_url || !UploadedThumbnail.secure_url) {
-    throw new ApiError(400, "Error uploading the video!");
+  if (!title || !description || !videoUrl || !thumbnailUrl || !duration) {
+    throw new ApiError(400, "title, description, videoUrl, thumbnailUrl, and duration are required!");
   }
 
   const video = await Video.create({
-    videoFile: Uploadedvideo.secure_url,
-    thumbnail: UploadedThumbnail.secure_url,
+    videoFile: videoUrl,
+    thumbnail: thumbnailUrl,
     title,
     description,
-    duration: Uploadedvideo.duration,
+    duration,
     owner: req.user?._id,
     channelName: req.user?.fullname,
   });
