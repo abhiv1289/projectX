@@ -68,16 +68,6 @@ app.get("/", (req, res) => {
   `);
 });
 
-app.use((err, req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Credentials", "true");
-
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
-});
-
 const startServer = async () => {
   try {
     await connectDB();
@@ -90,3 +80,13 @@ const startServer = async () => {
   }
 };
 startServer();
+
+app.use((err, req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
