@@ -33,6 +33,11 @@ const membershipSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    removedBy: {
+      type: String,
+      enum: ["USER", "OWNER"],
+      default: null,
+    },
   },
   {
     timestamps: true,
