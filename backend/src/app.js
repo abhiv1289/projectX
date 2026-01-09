@@ -13,6 +13,7 @@ import commentRoutes from "./routes/comment.routes.js";
 import likeRoutes from "./routes/like.routes.js";
 import playlistRoutes from "./routes/playlist.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
+import communityRoutes from "./routes/community.routes.js";
 
 dotenv.config();
 const app = express();
@@ -49,6 +50,8 @@ app.use("/api/v1/like", likeRoutes);
 app.use("/api/v1/playlist", playlistRoutes);
 
 app.use("/api/v1/dashboard", dashboardRoutes);
+
+app.use("/api/v1/community", communityRoutes);
 
 app.get("/", (req, res) => {
   res.send(`
