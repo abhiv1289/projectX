@@ -8,6 +8,9 @@ import {
   approveMembershipRequest,
   rejectMembershipRequest,
   removeMember,
+  leaveCommunity,
+  listCommunityMembers,
+  listPendingRequests,
 } from "../controllers/community.controller.js";
 
 const router = Router();
@@ -41,6 +44,22 @@ router.post(
   verifyJWT,
   validateCommunityPermission("OWNER"),
   removeMember
+);
+
+router.post("/:communityId/leave/:membershipId", verifyJWT, leaveCommunity);
+
+router.get(
+  "/:communityId/members",
+  verifyJWT,
+  validateCommunityPermission("OWNER"),
+  listCommunityMembers
+);
+
+router.get(
+  "/:communityId/pending-requests",
+  verifyJWT,
+  validateCommunityPermission("OWNER"),
+  listPendingRequests
 );
 
 export default router;

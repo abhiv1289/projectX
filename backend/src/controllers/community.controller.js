@@ -210,8 +210,73 @@ export const removeMember = asyncHandler(async (req, res) => {
 
   membership.status = "REMOVED";
   membership.joinedAt = null;
+  membership.removedBy = "OWNER";
   await membership.save();
   return res
     .status(200)
     .json(new ApiResponse(true, "Member removed successfully", membership));
+});
+
+export const leaveCommunity = asyncHandler(async (req, res) => {
+  const authenticatedUser = req.user;
+  const { communityId } = req.params;
+  const membership = await Membership.findOne({
+    userId: authenticatedUser._id,
+    communityId: communityId,
+  });
+  if (!membership) {
+    throw new ApiError(404, "Membership not found");
+  }
+  if (membership.status !== "APPROVED") {
+    throw new ApiError(400, "You are not an approved member of this community");
+  }
+  if (membership.role === "OWNER") {
+    throw new ApiError(400, "Owner cannot leave the community");
+  }
+  membership.status = "REMOVED";
+  membership.removedBy = "USER";
+  membership.joinedAt = null;
+  await membership.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(true, "Left community successfully", membership));
+});
+
+export const listCommunityMembers = asyncHandler(async (req, res) => {
+  const { communityId } = req.params;
+
+  const members = await Membership.find({
+    communityId,
+    status: "APPROVED",
+  })
+    .populate("userId", "fullname username email avatar")
+    .sort({ joinedAt: -1 });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(true, "Community members fetched successfully", members)
+    );
+});
+
+export const listPendingRequests = asyncHandler(async (req, res) => {
+  const { communityId } = req.params;
+
+  const members = await Membership.find({
+    communityId,
+    status: "PENDING",
+  })
+    .populate("userId", "fullname username email avatar")
+    .sort({ joinedAt: -1 });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        true,
+        "Pending membership requests fetched successfully",
+        members
+      )
+    );
 });
