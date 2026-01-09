@@ -107,3 +107,111 @@ export const joinCommunity = asyncHandler(async (req, res) => {
       )
     );
 });
+
+export const approveMembershipRequest = asyncHandler(async (req, res) => {
+  const { membershipId } = req.params;
+  const ownerMembership = req.membership;
+  const membership = await Membership.findById(membershipId);
+  if (!membership) {
+    throw new ApiError(404, "Membership request not found");
+  }
+
+  if (
+    membership.communityId.toString() !== ownerMembership.communityId.toString()
+  ) {
+    throw new ApiError(
+      403,
+      "You are not authorized to approve this membership request"
+    );
+  }
+
+  if (membership.status !== "PENDING") {
+    throw new ApiError(400, "Membership request is not pending");
+  }
+
+  if (membership.userId.toString() === ownerMembership.userId.toString()) {
+    throw new ApiError(400, "Owner cannot approve their own membership");
+  }
+
+  membership.status = "APPROVED";
+  membership.joinedAt = new Date();
+  await membership.save();
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        true,
+        "Membership request approved successfully",
+        membership
+      )
+    );
+});
+
+export const rejectMembershipRequest = asyncHandler(async (req, res) => {
+  const { membershipId } = req.params;
+  const ownerMembership = req.membership;
+  const membership = await Membership.findById(membershipId);
+  if (!membership) {
+    throw new ApiError(404, "Membership request not found");
+  }
+
+  if (
+    membership.communityId.toString() !== ownerMembership.communityId.toString()
+  ) {
+    throw new ApiError(
+      403,
+      "You are not authorized to reject this membership request"
+    );
+  }
+
+  if (membership.status !== "PENDING") {
+    throw new ApiError(400, "Membership request is not pending");
+  }
+
+  if (membership.userId.toString() === ownerMembership.userId.toString()) {
+    throw new ApiError(400, "Owner cannot reject their own membership");
+  }
+
+  membership.status = "REJECTED";
+  membership.joinedAt = null;
+  await membership.save();
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        true,
+        "Membership request rejected successfully",
+        membership
+      )
+    );
+});
+
+export const removeMember = asyncHandler(async (req, res) => {
+  const { membershipId } = req.params;
+  const ownerMembership = req.membership;
+  const membership = await Membership.findById(membershipId);
+  if (!membership) {
+    throw new ApiError(404, "Membership not found");
+  }
+
+  if (
+    membership.communityId.toString() !== ownerMembership.communityId.toString()
+  ) {
+    throw new ApiError(403, "You are not authorized to remove this member");
+  }
+
+  if (membership.status !== "APPROVED") {
+    throw new ApiError(400, "Only approved members can be removed");
+  }
+
+  if (membership.userId.toString() === ownerMembership.userId.toString()) {
+    throw new ApiError(400, "Owner cannot remove themselves");
+  }
+
+  membership.status = "REMOVED";
+  membership.joinedAt = null;
+  await membership.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(true, "Member removed successfully", membership));
+});
