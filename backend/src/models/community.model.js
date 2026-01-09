@@ -31,8 +31,8 @@ const communitySchema = new mongoose.Schema(
     },
     visibility: {
       type: String,
-      enum: ["public", "private", "restricted"],
-      default: "private",
+      enum: ["PUBLIC", "PRIVATE", "RESTRICTED"],
+      default: "PRIVATE",
     },
     communityAvatar: {
       type: String,

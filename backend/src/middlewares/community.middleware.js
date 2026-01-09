@@ -1,6 +1,6 @@
-import Community from "../models/community.model.js";
-import Membership from "../models/membership.model.js";
-export const validateCommunityPermision = (requiredRole = null) => {
+import { Community } from "../models/community.model.js";
+import { Membership } from "../models/membership.model.js";
+export const validateCommunityPermission = (requiredRole = null) => {
   return async (req, res, next) => {
     try {
       //verifyJWT must run before this middleware
